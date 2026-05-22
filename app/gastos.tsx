@@ -1,44 +1,13 @@
-import Gasto from "@/interfaces/Gasto";
-import { useRouter } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   useColorScheme,
 } from "react-native";
 
-export default function Index() {
-  const db = useSQLiteContext();
-  const [gastos, setGastos] = useState<Gasto[]>([]);
+export default function Gastos() {
   const scheme = useColorScheme();
-  const router = useRouter();
-  let contenido = (
-    <Text
-      style={[styles.label, scheme === "dark" ? styles.dark : styles.light]}
-    >
-      No hay gastos por aqui...
-    </Text>
-  );
-
-  useEffect(() => {
-    async function cargarGastos() {
-      const result = await db.getAllAsync<Gasto>("SELECT * FROM gastos");
-      setGastos(result);
-    }
-    cargarGastos();
-  }, []);
-
-  if (gastos.length > 0) {
-    contenido = gastos.map((gasto) => (
-      <Text key={gasto.id}>
-        {gasto.titulo} - ${gasto.monto}
-      </Text>
-    ));
-  }
 
   return (
     <ScrollView style={styles.container}>
@@ -58,13 +27,6 @@ export default function Index() {
       <TextInput
         style={[styles.input, scheme === "dark" ? styles.dark : styles.light]}
       ></TextInput>
-      {contenido}
-      <TouchableOpacity
-        style={[styles.boton]}
-        onPress={() => router.push("/gastos")}
-      >
-        <Text style={[styles.boton_text]}>Ir a agregar gastos</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
