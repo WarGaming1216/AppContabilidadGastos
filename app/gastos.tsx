@@ -1,66 +1,69 @@
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  useColorScheme,
-} from "react-native";
+// Principalmente para gastos de Mercado Pago
 
-export default function Gastos() {
-  const scheme = useColorScheme();
+import MyInput from "@/components/MyInput";
+import MyText from "@/components/MyText";
+import { useSQLiteContext } from "expo-sqlite";
+import { useState } from "react";
+import { Alert, Button, View } from "react-native";
+
+export default function AgregarGastoScreen() {
+  const db = useSQLiteContext();
+
+  // 1. Creamos los estados para capturar el texto de los inputs
+  const [concepto, setConcepto] = useState("");
+  const [monto, setMonto] = useState("");
+
+  const guardarGastoLocal = async () => {
+    // Validaciones iniciales básicas
+    if (!concepto.trim() || !monto.trim()) {
+      Alert.alert("Error", "Por favor llena todos los campos");
+      return;
+    }
+
+    try {
+      // 2. Pasamos las variables directamente en el arreglo.
+      // Convertimos el monto de String (del input) a número flotante (REAL)
+      const result = await db.runAsync(
+        `INSERT INTO movimientos (cuenta_id, tipo_movimiento, monto, concepto) 
+        VALUES (:cuenta, :tipo, :monto, :concepto)`,
+        {
+          ":cuenta": 1,
+          ":tipo": "GASTO",
+          ":monto": parseFloat(monto),
+          ":concepto": concepto,
+        },
+      );
+
+      console.log("ID del movimiento insertado:", result.lastInsertRowId);
+      Alert.alert("Éxito", "Gasto guardado correctamente de forma local");
+
+      // Limpiamos los inputs
+      setConcepto("");
+      setMonto("");
+    } catch (error) {
+      console.error("Error al insertar en la base de datos:", error);
+      Alert.alert("Error", "No se pudo guardar el gasto");
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text
-        style={[styles.label, scheme === "dark" ? styles.dark : styles.light]}
-      >
-        Este es el primer input
-      </Text>
-      <TextInput
-        style={[styles.input, scheme === "dark" ? styles.dark : styles.light]}
-      ></TextInput>
-      <Text
-        style={[styles.label, scheme === "dark" ? styles.dark : styles.light]}
-      >
-        Este es el segundo input
-      </Text>
-      <TextInput
-        style={[styles.input, scheme === "dark" ? styles.dark : styles.light]}
-      ></TextInput>
-    </ScrollView>
+    <View style={{ padding: 20 }}>
+      <MyText>Concepto del Gasto</MyText>
+      <MyInput
+        placeholder="Ej. Inscripción al gimnasio"
+        value={concepto}
+        onChangeText={setConcepto} // Modifica el estado con el texto plano
+      />
+
+      <MyText>Monto</MyText>
+      <MyInput
+        placeholder="0.00"
+        keyboardType="numeric"
+        value={monto}
+        onChangeText={setMonto} // Modifica el estado con el número en texto
+      />
+
+      <Button title="Guardar Gasto" onPress={guardarGastoLocal} />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: 20 },
-  label: {
-    fontSize: 16,
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    padding: 8,
-    marginBottom: 15,
-    borderRadius: 5,
-  },
-  dark: {
-    color: "white",
-    borderColor: "#ccc",
-  },
-  light: {
-    color: "#000",
-    borderColor: "#000",
-  },
-  boton: {
-    margin: 20,
-    backgroundColor: "blue",
-    borderRadius: 10,
-    padding: 10,
-  },
-  boton_text: {
-    color: "white",
-    textAlign: "center",
-    textTransform: "uppercase",
-  },
-});
