@@ -25,6 +25,22 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ headerTitle: "Resumen" }} />
         <Stack.Screen name="gastos" options={{ headerTitle: "Gastos" }} />
+        <Stack.Screen
+          name="metodos_pago/mercado_pago"
+          options={{ headerTitle: "Mercado Pago" }}
+        />
+        <Stack.Screen
+          name="metodos_pago/bbva"
+          options={{ headerTitle: "BBVA" }}
+        />
+        <Stack.Screen
+          name="metodos_pago/efectivo"
+          options={{ headerTitle: "Efectivo" }}
+        />
+        <Stack.Screen
+          name="metodos_pago/[id]"
+          options={{ headerTitle: "Cargando..." }}
+        />
       </Stack>
     </SQLiteProvider>
   );
