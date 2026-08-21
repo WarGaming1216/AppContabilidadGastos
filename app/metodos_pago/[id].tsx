@@ -214,6 +214,11 @@ export default function DetalleMetodoScreen() {
             maximumDate={new Date()}
           />
         )}
+        <TouchableOpacity style={globalStyles.boton}>
+          <Text style={globalStyles.boton_text}>
+            Registrar {id === "1" ? "movimiento" : "saldo"}
+          </Text>
+        </TouchableOpacity>
       </View>
     ) : (
       <View>

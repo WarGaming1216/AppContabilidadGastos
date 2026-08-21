@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 
 export const globalStyles = StyleSheet.create({
-  container: { padding: 20 },
+  container: { padding: 20, marginBottom: 80 },
   label: {
     fontSize: 16,
     marginTop: 10,

@@ -132,6 +132,12 @@ export default function Index() {
       >
         <Text style={[globalStyles.boton_text]}>Ir a agregar gastos</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={globalStyles.boton}
+        onPress={() => router.push("/nuevo_metodo")}
+      >
+        <Text style={globalStyles.boton_text}>Agregar nueva cuenta</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
