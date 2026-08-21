@@ -93,7 +93,10 @@ export default function Index() {
   );
 
   return (
-    <ScrollView style={globalStyles.container}>
+    <ScrollView
+      style={globalStyles.scrollView}
+      contentContainerStyle={globalStyles.scrollContent}
+    >
       <Text
         style={[
           globalStyles.label,
@@ -148,9 +151,9 @@ export default function Index() {
       </TouchableOpacity>
       <TouchableOpacity
         style={globalStyles.boton}
-        onPress={() => router.push("/nuevo_metodo")}
+        onPress={() => router.push("/gestionar_cuentas")}
       >
-        <Text style={globalStyles.boton_text}>Agregar nueva cuenta</Text>
+        <Text style={globalStyles.boton_text}>Gestionar Cuentas</Text>
       </TouchableOpacity>
     </ScrollView>
   );

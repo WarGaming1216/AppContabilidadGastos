@@ -30,8 +30,8 @@ export default function RootLayout() {
           options={{ headerTitle: "Cargando..." }}
         />
         <Stack.Screen
-          name="nuevo_metodo"
-          options={{ headerTitle: "Nuevo Método" }}
+          name="gestionar_cuentas"
+          options={{ headerTitle: "Gestionar Cuentas" }}
         />
       </Stack>
     </SQLiteProvider>

@@ -4,34 +4,48 @@ export const dbName = "finanzas.db";
 
 export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
   try {
+    // Habilitar configuraciones globales de SQLite en cada conexión
     await db.execAsync(`
-        PRAGMA journal_mode = WAL;
-        PRAGMA foreign_keys = ON;
+      PRAGMA journal_mode = WAL;
+      PRAGMA foreign_keys = ON;
+    `);
 
+    // 1. Obtener la versión actual almacenada en la base de datos
+    const result = await db.getFirstAsync<{ user_version: number }>(
+      "PRAGMA user_version",
+    );
+    let currentVersion = result?.user_version ?? 0;
+
+    console.log(`Versión actual de la BD: ${currentVersion}`);
+
+    // =========================================================================
+    // VERSIÓN 1: Esquema Base Completo
+    // =========================================================================
+    if (currentVersion === 0) {
+      await db.execAsync(`
         -- 1. CATÁLOGO DE MÉTODOS DE PAGO / CUENTAS
         CREATE TABLE IF NOT EXISTS cuentas_metodos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL UNIQUE -- 'Mercado Pago', 'BBVA', 'Efectivo'
+            nombre TEXT NOT NULL UNIQUE
         );
 
-        -- 2. HISTORIAL DE SALDOS (Para BBVA y Efectivo)
-        -- En lugar de registrar gastos, registras: "A las 3:00 PM mi saldo es $5,000"
+        -- 2. HISTORIAL DE SALDOS
         CREATE TABLE IF NOT EXISTS historial_saldos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cuenta_id INTEGER NOT NULL,
             saldo_actual REAL NOT NULL,
-            fecha_hora TEXT DEFAULT (datetime('now', 'localtime')), -- Almacena YYYY-MM-DD HH:MM:SS
+            fecha_hora TEXT DEFAULT (datetime('now', 'localtime')),
             FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
         );
 
-        -- 3. TABLA DE MOVIMIENTOS DETALLADOS (Principalmente para Mercado Pago / Crédito)
+        -- 3. TABLA DE MOVIMIENTOS DETALLADOS
         CREATE TABLE IF NOT EXISTS movimientos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cuenta_id INTEGER NOT NULL,
-            tipo_movimiento TEXT NOT NULL, -- 'GASTO', 'PAGO_ADELANTADO', 'PAGO_AUTOMATICO', 'DEVOLUCION', 'INGRESO'
+            tipo_movimiento TEXT NOT NULL,
             monto REAL NOT NULL,
             concepto TEXT NOT NULL,
-            fecha_hora TEXT DEFAULT (datetime('now', 'localtime')), -- Incluye hora exacta
+            fecha_hora TEXT DEFAULT (datetime('now', 'localtime')),
             FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
         );
 
@@ -63,20 +77,34 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
             importe_total REAL NOT NULL,
             estatus INTEGER DEFAULT 1
         );
-    `);
+      `);
 
-    // Alimentar métodos por defecto si está vacía
-    const metodosExistentes = await db.getAllAsync(
-      "SELECT id FROM cuentas_metodos LIMIT 1",
-    );
-    if (metodosExistentes.length === 0) {
+      // Seed inicial de cuentas de pago
       await db.execAsync(`
-        INSERT INTO cuentas_metodos (nombre) VALUES ('Mercado Pago'), ('BBVA'), ('Efectivo');
+        INSERT OR IGNORE INTO cuentas_metodos (nombre) VALUES ('Mercado Pago'), ('BBVA'), ('Efectivo');
       `);
       console.log("Métodos de pago iniciales registrados.");
+
+      // Actualizar la versión a 1
+      currentVersion = 1;
+      await db.execAsync("PRAGMA user_version = 1");
     }
 
-    console.log("Base de datos adaptada al flujo de saldos y transacciones.");
+    // =========================================================================
+    // VERSIÓN 2: Ejemplo de migración futura
+    // =========================================================================
+
+    if (currentVersion === 1) {
+      await db.execAsync(`
+        ALTER TABLE cuentas_metodos ADD COLUMN tipo TEXT NOT NULL DEFAULT 'DEBITO';
+      `);
+
+      currentVersion = 2;
+      await db.execAsync("PRAGMA user_version = 2");
+      console.log("Base de datos migrada a la Versión 2.");
+    }
+
+    console.log("Base de datos lista y sincronizada.");
   } catch (error) {
     console.error("Error al inicializar la base de datos", error);
   }
