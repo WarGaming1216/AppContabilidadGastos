@@ -1,8 +1,8 @@
 import MyText from "@/components/MyText";
 import { Gasto, MetodosPago } from "@/interfaces/Gasto";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -62,21 +62,35 @@ export default function Index() {
       </Text>
     );
 
-  useEffect(() => {
-    async function cargarGastos() {
-      const result = await db.getAllAsync<Gasto>("SELECT * FROM gastos");
-      setGastos(result);
-    }
-    cargarGastos();
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
 
-    async function cargarMetodosPago() {
-      const result = await db.getAllAsync<MetodosPago>(
-        "SELECT * FROM cuentas_metodos",
-      );
-      setMetodosPago(result);
-    }
-    cargarMetodosPago();
-  }, [db]);
+      async function cargarDatos() {
+        try {
+          const resultGastos = await db.getAllAsync<Gasto>(
+            "SELECT * FROM gastos",
+          );
+          const resultMetodos = await db.getAllAsync<MetodosPago>(
+            "SELECT * FROM cuentas_metodos",
+          );
+
+          if (isMounted) {
+            setGastos(resultGastos);
+            setMetodosPago(resultMetodos);
+          }
+        } catch (error) {
+          console.error("Error al redefinir la lista de métodos:", error);
+        }
+      }
+
+      cargarDatos();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [db]),
+  );
 
   return (
     <ScrollView style={globalStyles.container}>

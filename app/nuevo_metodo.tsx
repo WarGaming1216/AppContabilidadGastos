@@ -13,7 +13,7 @@ export default function NuevoMetodo() {
   const db = useSQLiteContext();
 
   const handleGuardar = async () => {
-    if (!metodo.trim) {
+    if (!metodo.trim()) {
       setMensaje("El nombre del método no puede estar vacio.");
       return;
     }
