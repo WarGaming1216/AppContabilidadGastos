@@ -99,7 +99,6 @@ export const globalStyles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    backgroundColor: "white",
   },
   placeholder: {
     color: "#999",
@@ -113,18 +112,33 @@ export const globalStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: {
-    backgroundColor: "white",
+  modalContentDark: {
+    backgroundColor: "#5e5e5e",
     borderRadius: 12,
     padding: 20,
     width: "80%",
     maxWidth: 300,
   },
-  modalTitulo: {
+  modalContentLight: {
+    backgroundColor: "#922020",
+    borderRadius: 12,
+    padding: 20,
+    width: "80%",
+    maxWidth: 300,
+  },
+  modalTituloDark: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#ffffff",
+  },
+  modalTituloLight: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#ffffff",
   },
   opcion: {
     paddingVertical: 12,
@@ -135,9 +149,13 @@ export const globalStyles = StyleSheet.create({
   opcionSeleccionada: {
     backgroundColor: "#e3f2fd",
   },
-  textoOpcion: {
+  textoOpcionDark: {
     fontSize: 16,
-    color: "#333",
+    color: "#ffffff",
+  },
+  textoOpcionLight: {
+    fontSize: 16,
+    color: "#000000",
   },
   textoOpcionSeleccionada: {
     color: "#1976d2",
@@ -149,7 +167,8 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
   },
   textoCerrar: {
-    color: "#1976d2",
+    backgroundColor: "#cfcfcf",
+    color: "#115396",
     fontSize: 16,
     fontWeight: "600",
   },

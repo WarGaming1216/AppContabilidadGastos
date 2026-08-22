@@ -15,10 +15,13 @@ import {
 import { formatearTexto } from "./constants/functions";
 import { globalStyles } from "./constants/styles";
 
+const tiposCuenta = ["Débito", "Crédito", "Efectivo"];
+
 export default function GestionarMetodos() {
   const scheme = useColorScheme();
   const isDark = scheme === "dark";
   const [cuenta, setCuenta] = useState("");
+  const [tipo, setTipo] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [cuentas, setCuentas] = useState<MetodosPago[]>([]);
   const db = useSQLiteContext();
@@ -44,17 +47,23 @@ export default function GestionarMetodos() {
 
   const handleGuardar = async () => {
     if (!cuenta.trim()) {
-      setMensaje("El nombre de la cuenta no puede estar vacio.");
+      setMensaje("El nombre de la cuenta no puede estar vacío.");
       return;
     }
 
-    const res = await guardarCuenta(cuenta);
+    if (!tipo.trim()) {
+      setMensaje("El tipo de cuenta no puede estar vacío.");
+      return;
+    }
+
+    const res = await guardarCuenta(cuenta, tipo);
 
     if (res && res.changes > 0) {
       setMensaje(
         `Cuenta ${cuenta} guardada con éxito (ID: ${res.lastInsertRowId})`,
       );
       setCuenta("");
+      setTipo("");
       // 2. Refrescamos la lista de inmediato tras guardar
       await cargarCuentas();
     } else {
@@ -62,11 +71,11 @@ export default function GestionarMetodos() {
     }
   };
 
-  async function guardarCuenta(cuenta: string) {
+  async function guardarCuenta(cuenta: string, tipo: string) {
     try {
       const result = await db.runAsync(
-        `INSERT INTO cuentas_metodos (nombre) VALUES (?)`,
-        [cuenta],
+        `INSERT INTO cuentas_metodos (nombre, tipo) VALUES (?, ?)`,
+        [cuenta, tipo],
       );
       return result;
     } catch (error) {
@@ -149,6 +158,25 @@ export default function GestionarMetodos() {
                   </Text>
                 </View>
                 <View style={globalStyles.celdaTipo}>
+                  {/* 
+                  <TouchableOpacity
+                    style={[globalStyles.selector, globalStyles.boton_select]}
+                    onPress={() => setModalVisible(true)}
+                  >
+                    <Text style={[globalStyles.boton_text]}>
+                      {valorSeleccionado || "Selecciona un tipo de cuenta"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <SelectorModal
+                    visible={modalVisible}
+                    onClose={() => setModalVisible(false)}
+                    titulo="Tipo de cuenta"
+                    opciones={tiposCuenta}
+                    valorSeleccionado={valorSeleccionado}
+                    onSeleccionar={onSeleccionar}
+                  />
+                   */}
                   <Text
                     style={[
                       globalStyles.tipo_texto,
@@ -190,6 +218,15 @@ export default function GestionarMetodos() {
           Nombre:
         </Text>
         <MyInput placeholder="Cuenta" value={cuenta} onChangeText={setCuenta} />
+        <Text
+          style={[
+            globalStyles.label,
+            isDark ? globalStyles.dark : globalStyles.light,
+          ]}
+        >
+          Tipo:
+        </Text>
+        <MyInput placeholder="Cuenta" value={tipo} onChangeText={setTipo} />
         <TouchableOpacity style={globalStyles.boton} onPress={handleGuardar}>
           <Text style={globalStyles.boton_text}>Guardar Cuenta</Text>
         </TouchableOpacity>
