@@ -5,10 +5,15 @@ import { Text } from "@react-navigation/elements";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { Trash2Icon } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  LayoutChangeEvent,
+  Platform,
   ScrollView,
+  TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -28,7 +33,30 @@ export default function GestionarMetodos() {
   const [valorSeleccionado, setValorSeleccionado] = useState(
     "Selecciona un tipo de gasto",
   );
+
+  // 1. Referencias para el ScrollView y para el Input
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputRef = useRef<TextInput>(null);
+  const [inputOffsetY, setInputOffsetY] = useState(0);
   const db = useSQLiteContext();
+
+  // 2. Listener global para capturar cuándo el teclado se oculta por GESTOS de Android
+  useEffect(() => {
+    const hideEvent =
+      Platform.OS === "android" ? "keyboardDidHide" : "keyboardWillHide";
+
+    const keyboardSubscription = Keyboard.addListener(hideEvent, () => {
+      // Si el teclado se oculta por gestos, le quitamos el foco al Input
+      // para que el próximo tap vuelva a disparar onFocus obligatoriamente
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    });
+
+    return () => {
+      keyboardSubscription.remove();
+    };
+  }, []);
 
   const handleSeleccionarTipo = async (tipoSeleccionado: string) => {
     if (origenModal === "NUEVA") {
@@ -43,7 +71,7 @@ export default function GestionarMetodos() {
           origenModal,
         ]);
         setMensaje(`Tipo actualizado a "${tipoSeleccionado}"`);
-        await cargarCuentas(); // Refresca los registros[cite: 1]
+        await cargarCuentas();
       } catch (error) {
         console.error("Error al actualizar tipo:", error);
         setMensaje("Error al actualizar el tipo de cuenta.");
@@ -142,12 +170,18 @@ export default function GestionarMetodos() {
   }
 
   return (
-    // 3. Usamos contentContainerStyle para el contenido interno
-    <>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+    >
       <ScrollView
+        ref={scrollViewRef}
         style={globalStyles.scrollView}
         contentContainerStyle={globalStyles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
+        {/* TABLA DE CUENTAS */}
         <View style={globalStyles.caja}>
           <View style={{ width: "100%", marginVertical: 10 }}>
             {/* Encabezado de la tabla */}
@@ -211,7 +245,13 @@ export default function GestionarMetodos() {
           </View>
         </View>
 
-        <View style={globalStyles.caja}>
+        <View
+          style={globalStyles.caja}
+          onLayout={(event: LayoutChangeEvent) => {
+            const { y } = event.nativeEvent.layout;
+            setInputOffsetY(y);
+          }}
+        >
           <Text
             style={[
               globalStyles.title,
@@ -229,9 +269,19 @@ export default function GestionarMetodos() {
             Nombre:
           </Text>
           <MyInput
+            ref={inputRef} // Pasa la ref a tu componente personalizado (o usa ref directa si es TextInput)
             placeholder="Cuenta"
             value={cuenta}
             onChangeText={setCuenta}
+            onFocus={() => {
+              setTimeout(() => {
+                // scrollViewRef.current?.scrollToEnd({ animated: true });
+                scrollViewRef.current?.scrollTo({
+                  y: inputOffsetY,
+                  animated: true,
+                });
+              }, 150);
+            }}
           />
           <Text
             style={[
@@ -275,6 +325,6 @@ export default function GestionarMetodos() {
         onSeleccionar={handleSeleccionarTipo}
         formatearOpcion="SI"
       />
-    </>
+    </KeyboardAvoidingView>
   );
 }
