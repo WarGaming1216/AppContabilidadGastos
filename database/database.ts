@@ -104,6 +104,16 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
       console.log("Base de datos migrada a la Versión 2.");
     }
 
+    if (currentVersion === 2) {
+      await db.execAsync(`
+        ALTER TABLE cuentas_metodos ALTER COLUMN tipo TEXT NOT NULL DEFAULT 'Débito';
+      `);
+
+      currentVersion = 3;
+      await db.execAsync("PRAGMA user_version = 3");
+      console.log("Base de datos migrada a la Versión 3.");
+    }
+
     console.log("Base de datos lista y sincronizada.");
   } catch (error) {
     console.error("Error al inicializar la base de datos", error);

@@ -273,6 +273,7 @@ export default function GestionarMetodos() {
             : cuentas.find((c) => c.id === origenModal)?.tipo || ""
         }
         onSeleccionar={handleSeleccionarTipo}
+        formatearOpcion="SI"
       />
     </>
   );

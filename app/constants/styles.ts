@@ -83,7 +83,7 @@ export const globalStyles = StyleSheet.create({
     textTransform: "capitalize",
   },
   celdaAcciones: {
-    width: 50, // Ancho fijo para botones/iconos pequeños como el de eliminar
+    width: 60, // Ancho fijo para botones/iconos pequeños como el de eliminar
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
