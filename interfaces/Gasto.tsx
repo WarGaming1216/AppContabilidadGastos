@@ -10,4 +10,5 @@ export interface Gasto {
 export interface MetodosPago {
   id: number;
   nombre: string;
+  tipo: string;
 }

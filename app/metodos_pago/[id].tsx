@@ -1,6 +1,7 @@
 import { globalStyles } from "@/app/constants/styles";
 import MyInput from "@/components/MyInput";
 import MyText from "@/components/MyText";
+import SelectorModal from "@/components/SelectorModal";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -8,7 +9,6 @@ import { Stack, useLocalSearchParams } from "expo-router"; // Importamos 'Stack'
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
 import {
-  Modal,
   Platform,
   ScrollView,
   Text,
@@ -145,50 +145,14 @@ export default function DetalleMetodoScreen() {
             </Text>
           </TouchableOpacity>
 
-          <Modal
-            transparent={true}
+          <SelectorModal
             visible={modalVisible}
-            animationType="slide"
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <View style={globalStyles.modalOverlay}>
-              <View style={globalStyles.modalContent}>
-                <Text style={globalStyles.modalTitulo}>Tipo de gasto</Text>
-
-                {tiposGasto.map((tipo) => (
-                  <TouchableOpacity
-                    key={tipo}
-                    style={[
-                      globalStyles.opcion,
-                      valorSeleccionado === tipo &&
-                        globalStyles.opcionSeleccionada,
-                    ]}
-                    onPress={() => {
-                      onSeleccionar(tipo);
-                      setModalVisible(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        globalStyles.textoOpcion,
-                        valorSeleccionado === tipo &&
-                          globalStyles.textoOpcionSeleccionada,
-                      ]}
-                    >
-                      {tipo}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-
-                <TouchableOpacity
-                  style={globalStyles.botonCerrar}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Text style={globalStyles.textoCerrar}>Cancelar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
+            onClose={() => setModalVisible(false)}
+            titulo="Tipo de gasto"
+            opciones={tiposGasto}
+            valorSeleccionado={valorSeleccionado}
+            onSeleccionar={onSeleccionar}
+          />
         </View>
         <MyInput placeholder="Monto" />
         <MyInput placeholder="Concepto" />
@@ -214,6 +178,11 @@ export default function DetalleMetodoScreen() {
             maximumDate={new Date()}
           />
         )}
+        <TouchableOpacity style={globalStyles.boton}>
+          <Text style={globalStyles.boton_text}>
+            Registrar {id === "1" ? "movimiento" : "saldo"}
+          </Text>
+        </TouchableOpacity>
       </View>
     ) : (
       <View>

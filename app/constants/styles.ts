@@ -1,7 +1,28 @@
 import { StyleSheet } from "react-native";
 
 export const globalStyles = StyleSheet.create({
-  container: { padding: 20 },
+  container: { padding: 20, paddingBottom: 60, marginBottom: 22 },
+  // En tu globalStyles:
+  scrollView: {
+    flex: 1, // Garantiza que el ScrollView ocupe toda la pantalla
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40, // Espacio extra al final para no tapar los últimos botones/inputs
+  },
+  caja: {
+    margin: 10,
+    padding: 10,
+    borderStyle: "solid",
+    borderColor: "white",
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  title: {
+    fontSize: 30,
+    textAlign: "center",
+    paddingBottom: 20,
+  },
   label: {
     fontSize: 16,
     marginTop: 10,
@@ -39,14 +60,45 @@ export const globalStyles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
   },
-
+  // En tu archivo de estilos globales o stylesheet local
+  fila: {
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "center", // Alinea verticalmente los iconos y el texto
+    borderBottomWidth: 1,
+    borderBottomColor: "#5a5a5a", // Bordes limpios por fila en lugar de cajas individuales
+  },
+  celdaNombre: {
+    flex: 1, // Toma todo el espacio sobrante disponible de la fila
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  celdaTipo: {
+    width: 90,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+  },
+  tipo_texto: {
+    textTransform: "capitalize",
+  },
+  celdaAcciones: {
+    width: 60, // Ancho fijo para botones/iconos pequeños como el de eliminar
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+  },
+  encabezado: {
+    backgroundColor: "#2a2a2a", // Diferenciador visual opcional para los títulos
+    borderBottomWidth: 2,
+    borderBottomColor: "#666",
+  },
   // Estos son del model para seleccionar el Gasto
   selector: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    backgroundColor: "white",
   },
   placeholder: {
     color: "#999",
@@ -60,18 +112,33 @@ export const globalStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: {
-    backgroundColor: "white",
+  modalContentDark: {
+    backgroundColor: "#5e5e5e",
     borderRadius: 12,
     padding: 20,
     width: "80%",
     maxWidth: 300,
   },
-  modalTitulo: {
+  modalContentLight: {
+    backgroundColor: "#922020",
+    borderRadius: 12,
+    padding: 20,
+    width: "80%",
+    maxWidth: 300,
+  },
+  modalTituloDark: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#ffffff",
+  },
+  modalTituloLight: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#ffffff",
   },
   opcion: {
     paddingVertical: 12,
@@ -82,9 +149,13 @@ export const globalStyles = StyleSheet.create({
   opcionSeleccionada: {
     backgroundColor: "#e3f2fd",
   },
-  textoOpcion: {
+  textoOpcionDark: {
     fontSize: 16,
-    color: "#333",
+    color: "#ffffff",
+  },
+  textoOpcionLight: {
+    fontSize: 16,
+    color: "#000000",
   },
   textoOpcionSeleccionada: {
     color: "#1976d2",
@@ -96,7 +167,8 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
   },
   textoCerrar: {
-    color: "#1976d2",
+    backgroundColor: "#cfcfcf",
+    color: "#115396",
     fontSize: 16,
     fontWeight: "600",
   },
