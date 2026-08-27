@@ -24,7 +24,10 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ headerTitle: "Resumen" }} />
-        <Stack.Screen name="gastos" options={{ headerTitle: "Gastos" }} />
+        <Stack.Screen
+          name="saldo_inicial"
+          options={{ headerTitle: "Saldo Inicial" }}
+        />
         <Stack.Screen
           name="metodos_pago/[id]"
           options={{ headerTitle: "Cargando..." }}

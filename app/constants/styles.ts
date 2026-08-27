@@ -71,7 +71,7 @@ export const globalStyles = StyleSheet.create({
   celdaNombre: {
     flex: 1, // Toma todo el espacio sobrante disponible de la fila
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   celdaTipo: {
     width: 90,
@@ -92,6 +92,8 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: "#2a2a2a", // Diferenciador visual opcional para los títulos
     borderBottomWidth: 2,
     borderBottomColor: "#666",
+    textAlign: "center",
+    textAlignVertical: "center",
   },
   // Estos son del model para seleccionar el Gasto
   selector: {

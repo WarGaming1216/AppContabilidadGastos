@@ -1,6 +1,6 @@
 import MyInput from "@/components/MyInput";
 import SelectorModal from "@/components/SelectorModal";
-import { MetodosPago } from "@/interfaces/Gasto";
+import { MetodosPago } from "@/interfaces/General_DB";
 import { Text } from "@react-navigation/elements";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
