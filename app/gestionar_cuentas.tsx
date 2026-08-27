@@ -1,4 +1,5 @@
 import MyInput from "@/components/MyInput";
+import SelectorModal from "@/components/SelectorModal";
 import { MetodosPago } from "@/interfaces/Gasto";
 import { Text } from "@react-navigation/elements";
 import { useFocusEffect } from "expo-router";
@@ -12,7 +13,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { formatearTexto } from "./constants/functions";
 import { globalStyles } from "./constants/styles";
 
 const tiposCuenta = ["Débito", "Crédito", "Efectivo"];
@@ -24,7 +24,35 @@ export default function GestionarMetodos() {
   const [tipo, setTipo] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [cuentas, setCuentas] = useState<MetodosPago[]>([]);
+  const [origenModal, setOrigenModal] = useState<"NUEVA" | number | null>(null);
+  const [valorSeleccionado, setValorSeleccionado] = useState(
+    "Selecciona un tipo de gasto",
+  );
   const db = useSQLiteContext();
+
+  const handleSeleccionarTipo = async (tipoSeleccionado: string) => {
+    if (origenModal === "NUEVA") {
+      // 1. Si viene del formulario "Agregar Cuenta"
+      setTipo(tipoSeleccionado);
+      setValorSeleccionado(tipoSeleccionado);
+    } else if (typeof origenModal === "number") {
+      // 2. Si viene de editar una fila existente en la tabla
+      try {
+        await db.runAsync("UPDATE cuentas_metodos SET tipo = ? WHERE id = ?", [
+          tipoSeleccionado,
+          origenModal,
+        ]);
+        setMensaje(`Tipo actualizado a "${tipoSeleccionado}"`);
+        await cargarCuentas(); // Refresca los registros[cite: 1]
+      } catch (error) {
+        console.error("Error al actualizar tipo:", error);
+        setMensaje("Error al actualizar el tipo de cuenta.");
+      }
+    }
+
+    // Cierra el modal restableciendo el estado a null
+    setOrigenModal(null);
+  };
 
   // 1. Extraemos la función de carga para poder invocarla manualmente
   const cargarCuentas = useCallback(async () => {
@@ -115,128 +143,137 @@ export default function GestionarMetodos() {
 
   return (
     // 3. Usamos contentContainerStyle para el contenido interno
-    <ScrollView
-      style={globalStyles.scrollView}
-      contentContainerStyle={globalStyles.scrollContent}
-    >
-      <View style={globalStyles.caja}>
-        <View style={{ width: "100%", marginVertical: 10 }}>
-          {/* Encabezado de la tabla */}
-          {cuentas && cuentas.length > 0 && (
-            <View style={[globalStyles.fila, globalStyles.encabezado]}>
-              <View style={globalStyles.celdaNombre}>
-                <Text
-                  style={[
-                    isDark ? globalStyles.dark : globalStyles.light,
-                    { fontWeight: "bold" },
-                  ]}
-                >
-                  Cuenta
-                </Text>
-              </View>
-              <View style={globalStyles.celdaAcciones}>
-                <Text
-                  style={[
-                    isDark ? globalStyles.dark : globalStyles.light,
-                    { fontWeight: "bold" },
-                  ]}
-                >
-                  Acción
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Filas de datos */}
-          {cuentas &&
-            cuentas.length > 0 &&
-            cuentas.map((item) => (
-              <View key={item.id} style={globalStyles.fila}>
+    <>
+      <ScrollView
+        style={globalStyles.scrollView}
+        contentContainerStyle={globalStyles.scrollContent}
+      >
+        <View style={globalStyles.caja}>
+          <View style={{ width: "100%", marginVertical: 10 }}>
+            {/* Encabezado de la tabla */}
+            {cuentas && cuentas.length > 0 && (
+              <View style={[globalStyles.fila, globalStyles.encabezado]}>
                 <View style={globalStyles.celdaNombre}>
-                  <Text style={isDark ? globalStyles.dark : globalStyles.light}>
-                    {item.nombre}
-                  </Text>
-                </View>
-                <View style={globalStyles.celdaTipo}>
-                  {/* 
-                  <TouchableOpacity
-                    style={[globalStyles.selector, globalStyles.boton_select]}
-                    onPress={() => setModalVisible(true)}
-                  >
-                    <Text style={[globalStyles.boton_text]}>
-                      {valorSeleccionado || "Selecciona un tipo de cuenta"}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <SelectorModal
-                    visible={modalVisible}
-                    onClose={() => setModalVisible(false)}
-                    titulo="Tipo de cuenta"
-                    opciones={tiposCuenta}
-                    valorSeleccionado={valorSeleccionado}
-                    onSeleccionar={onSeleccionar}
-                  />
-                   */}
                   <Text
                     style={[
-                      globalStyles.tipo_texto,
                       isDark ? globalStyles.dark : globalStyles.light,
+                      { fontWeight: "bold" },
                     ]}
                   >
-                    {formatearTexto(item.tipo)}
+                    Cuenta
                   </Text>
                 </View>
-
-                <TouchableOpacity
-                  style={globalStyles.celdaAcciones}
-                  onPress={async () => {
-                    borrarCuenta(item.id, item.nombre);
-                  }}
-                >
-                  <Trash2Icon color={"red"} size={20} />
-                </TouchableOpacity>
+                <View style={globalStyles.celdaAcciones}>
+                  <Text
+                    style={[
+                      isDark ? globalStyles.dark : globalStyles.light,
+                      { fontWeight: "bold" },
+                    ]}
+                  >
+                    Acción
+                  </Text>
+                </View>
               </View>
-            ))}
+            )}
+
+            {cuentas &&
+              cuentas.length > 0 &&
+              cuentas.map((item) => (
+                <View key={item.id} style={globalStyles.fila}>
+                  <View style={globalStyles.celdaNombre}>
+                    <Text
+                      style={isDark ? globalStyles.dark : globalStyles.light}
+                    >
+                      {item.nombre}
+                    </Text>
+                  </View>
+
+                  <View style={globalStyles.celdaTipo}>
+                    {/* Botón que asigna el ID activo para abrir el modal */}
+                    <TouchableOpacity
+                      style={[globalStyles.selector, globalStyles.boton_select]}
+                      onPress={() => setOrigenModal(item.id)}
+                    >
+                      <Text style={[globalStyles.boton_text]}>
+                        {item.tipo || "Tipo"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={globalStyles.celdaAcciones}
+                    onPress={() => borrarCuenta(item.id, item.nombre)}
+                  >
+                    <Trash2Icon color={"red"} size={20} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+          </View>
         </View>
-      </View>
 
-      <View style={globalStyles.caja}>
-        <Text
-          style={[
-            globalStyles.title,
-            isDark ? globalStyles.dark : globalStyles.light,
-          ]}
-        >
-          Agregar Cuenta
-        </Text>
-        <Text
-          style={[
-            globalStyles.label,
-            isDark ? globalStyles.dark : globalStyles.light,
-          ]}
-        >
-          Nombre:
-        </Text>
-        <MyInput placeholder="Cuenta" value={cuenta} onChangeText={setCuenta} />
-        <Text
-          style={[
-            globalStyles.label,
-            isDark ? globalStyles.dark : globalStyles.light,
-          ]}
-        >
-          Tipo:
-        </Text>
-        <MyInput placeholder="Cuenta" value={tipo} onChangeText={setTipo} />
-        <TouchableOpacity style={globalStyles.boton} onPress={handleGuardar}>
-          <Text style={globalStyles.boton_text}>Guardar Cuenta</Text>
-        </TouchableOpacity>
-
-        {mensaje ? (
-          <Text style={isDark ? globalStyles.dark : globalStyles.light}>
-            {mensaje}
+        <View style={globalStyles.caja}>
+          <Text
+            style={[
+              globalStyles.title,
+              isDark ? globalStyles.dark : globalStyles.light,
+            ]}
+          >
+            Agregar Cuenta
           </Text>
-        ) : null}
-      </View>
-    </ScrollView>
+          <Text
+            style={[
+              globalStyles.label,
+              isDark ? globalStyles.dark : globalStyles.light,
+            ]}
+          >
+            Nombre:
+          </Text>
+          <MyInput
+            placeholder="Cuenta"
+            value={cuenta}
+            onChangeText={setCuenta}
+          />
+          <Text
+            style={[
+              globalStyles.label,
+              isDark ? globalStyles.dark : globalStyles.light,
+            ]}
+          >
+            Tipo:
+          </Text>
+          <View>
+            <TouchableOpacity
+              style={[globalStyles.selector, globalStyles.boton_select]}
+              onPress={() => setOrigenModal("NUEVA")}
+            >
+              <Text style={[globalStyles.boton_text]}>
+                {valorSeleccionado || "Selecciona un tipo de cuenta"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={globalStyles.boton} onPress={handleGuardar}>
+            <Text style={globalStyles.boton_text}>Guardar Cuenta</Text>
+          </TouchableOpacity>
+
+          {mensaje ? (
+            <Text style={isDark ? globalStyles.dark : globalStyles.light}>
+              {mensaje}
+            </Text>
+          ) : null}
+        </View>
+      </ScrollView>
+      <SelectorModal
+        visible={origenModal !== null}
+        onClose={() => setOrigenModal(null)}
+        titulo="Tipo de cuenta"
+        opciones={tiposCuenta}
+        valorSeleccionado={
+          origenModal === "NUEVA"
+            ? tipo
+            : cuentas.find((c) => c.id === origenModal)?.tipo || ""
+        }
+        onSeleccionar={handleSeleccionarTipo}
+      />
+    </>
   );
 }
