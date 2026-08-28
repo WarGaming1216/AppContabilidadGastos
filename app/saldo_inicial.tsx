@@ -4,7 +4,8 @@ import MyInput from "@/components/MyInput";
 import MyText from "@/components/MyText";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
-import { Alert, Button, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+import globalStyles from "./constants/styles";
 
 export default function AgregarGastoScreen() {
   const db = useSQLiteContext();
@@ -63,7 +64,9 @@ export default function AgregarGastoScreen() {
         onChangeText={setMonto} // Modifica el estado con el número en texto
       />
 
-      <Button title="Guardar Gasto" onPress={guardarGastoLocal} />
+      <TouchableOpacity style={globalStyles.boton} onPress={guardarGastoLocal}>
+        <Text style={globalStyles.boton_text}>Guardar Saldo</Text>
+      </TouchableOpacity>
     </View>
   );
 }

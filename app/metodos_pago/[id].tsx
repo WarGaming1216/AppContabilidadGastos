@@ -1,7 +1,8 @@
-import { globalStyles } from "@/app/constants/styles";
+import globalStyles from "@/app/constants/styles";
 import MyInput from "@/components/MyInput";
 import MyText from "@/components/MyText";
 import SelectorModal from "@/components/SelectorModal";
+import { MetodosPago } from "@/interfaces/General_DB";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -16,7 +17,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { formatearMoneda } from "../constants/functions";
+import { formatearFecha, formatearMoneda } from "../constants/functions";
 
 interface HistorialSaldos {
   id: number;
@@ -44,7 +45,7 @@ const tiposGasto = [
 
 export default function DetalleMetodoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>(); // Captura el ID de la ruta (ej: "1", "2")
-  const [nombreCuenta, setNombreCuenta] = useState("Detalle de Cuenta");
+  const [cuenta, setCuenta] = useState<MetodosPago>();
   const [monto, setMonto] = useState("");
   const [concepto, setConcepto] = useState("");
 
@@ -85,13 +86,13 @@ export default function DetalleMetodoScreen() {
     async function obtenerNombreCuenta() {
       try {
         // Buscamos en la base de datos el nombre real usando el ID de la ruta
-        const result = await db.getFirstAsync<{ nombre: string }>(
-          "SELECT nombre FROM cuentas_metodos WHERE id = ?",
+        const result = await db.getFirstAsync<MetodosPago>(
+          "SELECT * FROM cuentas_metodos WHERE id = ?",
           [parseInt(id)],
         );
 
         if (result) {
-          setNombreCuenta(result.nombre);
+          setCuenta(result);
         }
       } catch (error) {
         console.error("Error al consultar el nombre de la cuenta:", error);
@@ -173,7 +174,7 @@ export default function DetalleMetodoScreen() {
   }
 
   const contenido =
-    id === "1" ? (
+    cuenta?.tipo === "Crédito" ? (
       contenidoTabMov && contenidoTabMov.length > 0 ? (
         <View>
           <View style={[globalStyles.fila, globalStyles.encabezado]}>
@@ -217,7 +218,7 @@ export default function DetalleMetodoScreen() {
               </View>
               <View style={globalStyles.celdaNombre}>
                 <Text style={isDark ? globalStyles.dark : globalStyles.light}>
-                  {movimiento.fecha_hora.toString()}
+                  {formatearFecha(movimiento.fecha_hora)}
                 </Text>
               </View>
             </View>
@@ -242,7 +243,7 @@ export default function DetalleMetodoScreen() {
             style={[globalStyles.selector, globalStyles.boton_select]}
             onPress={() => setModalVisible(true)}
           >
-            <Text style={[globalStyles.boton_text]}>
+            <Text style={[globalStyles.boton_nav_text]}>
               {valorSeleccionado || "Selecciona un tipo de gasto"}
             </Text>
           </TouchableOpacity>
@@ -264,7 +265,7 @@ export default function DetalleMetodoScreen() {
         />
         <MyText>Fecha de registro:</MyText>
         <TouchableOpacity
-          style={globalStyles.input}
+          style={globalStyles.date}
           onPress={() => setMostrarCalendario(true)}
         >
           <MyText>
@@ -295,15 +296,39 @@ export default function DetalleMetodoScreen() {
       <View>
         <MyInput placeholder="Tipo de movimiento" />
         <MyInput placeholder="Monto" />
+        <TouchableOpacity
+          style={globalStyles.date}
+          onPress={() => setMostrarCalendario(true)}
+        >
+          <MyText>
+            {fecha.toLocaleDateString("es-MX", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
+          </MyText>
+        </TouchableOpacity>
+        {mostrarCalendario && (
+          <DateTimePicker
+            value={fecha}
+            mode="date"
+            display="default"
+            onChange={alCambiarFecha}
+            maximumDate={new Date()}
+          />
+        )}
+        <TouchableOpacity
+          style={globalStyles.boton}
+          onPress={handleGuardarMovimiento}
+        >
+          <Text style={globalStyles.boton_text}>Registrar movimiento</Text>
+        </TouchableOpacity>
       </View>
     );
 
   return (
     <ScrollView style={globalStyles.container}>
-      {/* ¡Aquí está el truco! Este componente sobreescribe las opciones del Layout 
-        y clava el nombre real (BBVA, Mercado Pago, etc.) en la barra superior nativa
-      */}
-      <Stack.Screen options={{ headerTitle: nombreCuenta }} />
+      <Stack.Screen options={{ headerTitle: cuenta?.nombre }} />
 
       <MyText>Nuevo registro:</MyText>
       {registros}

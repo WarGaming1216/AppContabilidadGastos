@@ -15,12 +15,12 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           contentStyle: {
-            backgroundColor: scheme === "dark" ? "#323232" : "white",
+            backgroundColor: scheme === "dark" ? "#16235C" : "white",
           },
           headerStyle: {
-            backgroundColor: scheme === "dark" ? "#323232" : "white",
+            backgroundColor: scheme === "dark" ? "#16235C" : "white",
           },
-          headerTintColor: scheme === "dark" ? "white" : "black",
+          headerTintColor: scheme === "dark" ? "#fff" : "#000",
         }}
       >
         <Stack.Screen name="index" options={{ headerTitle: "Resumen" }} />

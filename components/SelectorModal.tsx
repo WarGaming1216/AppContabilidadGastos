@@ -1,5 +1,5 @@
 import { formatearTexto } from "@/app/constants/functions";
-import { globalStyles } from "@/app/constants/styles"; // Ajusta la ruta a tus estilos
+import globalStyles from "@/app/constants/styles"; // Ajusta la ruta a tus estilos
 import React from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 

@@ -1,4 +1,4 @@
-import { globalStyles } from "@/app/constants/styles";
+import globalStyles from "@/app/constants/styles";
 import { Text, type TextProps, useColorScheme } from "react-native";
 
 // Extendemos las propiedades nativas del Text de React Native

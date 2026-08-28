@@ -18,7 +18,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { globalStyles } from "./constants/styles";
+import globalStyles from "./constants/styles";
 
 const tiposCuenta = ["Débito", "Crédito", "Efectivo"];
 
@@ -228,7 +228,7 @@ export default function GestionarMetodos() {
                       style={[globalStyles.selector, globalStyles.boton_select]}
                       onPress={() => setOrigenModal(item.id)}
                     >
-                      <Text style={[globalStyles.boton_text]}>
+                      <Text style={[globalStyles.boton_nav_text]}>
                         {item.tipo || "Tipo"}
                       </Text>
                     </TouchableOpacity>
@@ -296,7 +296,7 @@ export default function GestionarMetodos() {
               style={[globalStyles.selector, globalStyles.boton_select]}
               onPress={() => setOrigenModal("NUEVA")}
             >
-              <Text style={[globalStyles.boton_text]}>
+              <Text style={[globalStyles.boton_nav_text]}>
                 {valorSeleccionado || "Selecciona un tipo de cuenta"}
               </Text>
             </TouchableOpacity>

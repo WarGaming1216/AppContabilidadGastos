@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
-import { globalStyles } from "./constants/styles";
+import globalStyles from "./constants/styles";
 
 export default function Index() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function Index() {
     metodos.length > 0 ? (
       metodos.map((metodo) => (
         <TouchableOpacity
-          style={globalStyles.boton}
+          style={globalStyles.boton_navegacion}
           key={metodo.id}
           onPress={() =>
             router.push({
@@ -43,7 +43,7 @@ export default function Index() {
             })
           }
         >
-          <Text style={globalStyles.boton_text}>{metodo.nombre}</Text>
+          <Text style={globalStyles.boton_nav_text}>{metodo.nombre}</Text>
         </TouchableOpacity>
       ))
     ) : (

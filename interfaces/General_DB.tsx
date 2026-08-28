@@ -8,7 +8,7 @@ export interface Saldos {
   id: number;
   cuenta_id: number;
   saldo_actual: number;
-  fecha_hora: string;
+  fecha_hora: Date;
 }
 
 export interface Movimientos {
@@ -17,7 +17,7 @@ export interface Movimientos {
   tipo_movimiento: string;
   monto: number;
   concepto: string;
-  fecha_hora: string;
+  fecha_hora: Date;
 }
 
 export interface Suscripciones {
