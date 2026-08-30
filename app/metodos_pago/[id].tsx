@@ -235,8 +235,15 @@ export default function DetalleMetodoScreen() {
       <MyText>No hay saldos registrados...</MyText>
     );
 
-  const registros =
-    id === "1" ? (
+  return (
+    <ScrollView
+      style={[globalStyles.scrollView]}
+      contentContainerStyle={globalStyles.scrollContent}
+    >
+      <Stack.Screen options={{ headerTitle: cuenta?.nombre }} />
+
+      <MyText>Nuevo registro:</MyText>
+      {/* {registros} */}
       <View>
         <View>
           <TouchableOpacity
@@ -268,13 +275,7 @@ export default function DetalleMetodoScreen() {
           style={globalStyles.date}
           onPress={() => setMostrarCalendario(true)}
         >
-          <MyText>
-            {fecha.toLocaleDateString("es-MX", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}
-          </MyText>
+          <MyText>{formatearFecha(fecha)}</MyText>
         </TouchableOpacity>
         {mostrarCalendario && (
           <DateTimePicker
@@ -292,46 +293,6 @@ export default function DetalleMetodoScreen() {
           <Text style={globalStyles.boton_text}>Registrar movimiento</Text>
         </TouchableOpacity>
       </View>
-    ) : (
-      <View>
-        <MyInput placeholder="Tipo de movimiento" />
-        <MyInput placeholder="Monto" />
-        <TouchableOpacity
-          style={globalStyles.date}
-          onPress={() => setMostrarCalendario(true)}
-        >
-          <MyText>
-            {fecha.toLocaleDateString("es-MX", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}
-          </MyText>
-        </TouchableOpacity>
-        {mostrarCalendario && (
-          <DateTimePicker
-            value={fecha}
-            mode="date"
-            display="default"
-            onChange={alCambiarFecha}
-            maximumDate={new Date()}
-          />
-        )}
-        <TouchableOpacity
-          style={globalStyles.boton}
-          onPress={handleGuardarMovimiento}
-        >
-          <Text style={globalStyles.boton_text}>Registrar movimiento</Text>
-        </TouchableOpacity>
-      </View>
-    );
-
-  return (
-    <ScrollView style={globalStyles.container}>
-      <Stack.Screen options={{ headerTitle: cuenta?.nombre }} />
-
-      <MyText>Nuevo registro:</MyText>
-      {registros}
 
       <MyText>Historial de {id === "1" ? "movimientos:" : "saldos:"}</MyText>
       <MyText>{contenido}</MyText>

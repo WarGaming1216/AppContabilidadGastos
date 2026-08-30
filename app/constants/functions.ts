@@ -5,16 +5,16 @@ export function formatearTexto(texto: string): string {
   return textoLimpio.charAt(0).toUpperCase() + textoLimpio.slice(1);
 }
 
-export const formatearMoneda = (amount: number): string => {
+export function formatearMoneda(amount: number): string {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
   }).format(amount);
-};
+}
 
-export const formatearFecha = (
+export function formatearFecha(
   fecha: Date | string | null | undefined,
-): string => {
+): string {
   if (!fecha) return "--/--/--";
 
   // Si es un string (como los que regresa SQLite), creamos el objeto Date
@@ -31,4 +31,4 @@ export const formatearFecha = (
     year: "2-digit",
     timeZone: "America/Mexico_City",
   }).format(dateObj);
-};
+}

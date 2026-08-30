@@ -82,6 +82,12 @@ const globalStyles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
   },
+  fila_general: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-evenly",
+    marginHorizontal: 15,
+  },
   // Diseños de las tablas
   fila: {
     flexDirection: "row",
@@ -195,6 +201,27 @@ const globalStyles = StyleSheet.create({
     color: "#9063E1",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Paginado
+  vista_pag: {
+    flex: 1,
+    width: "100%",
+    flexDirection: "row",
+  },
+  boton_pag: {
+    flex: 1,
+    marginHorizontal: 5,
+    marginVertical: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#9063E1",
+    boxShadow: "3px 4px 0px #9063E1",
+    borderBottomRightRadius: 8,
+  },
+  pag_seleccionado: {
+    backgroundColor: "#9191a7",
   },
 });
 

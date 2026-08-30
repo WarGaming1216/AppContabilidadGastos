@@ -109,6 +109,12 @@ export default function Index() {
       >
         Métodos de pago:
       </Text>
+      <TouchableOpacity
+        style={globalStyles.boton}
+        onPress={() => router.push("/metodos_pago/movimientos")}
+      >
+        <Text style={globalStyles.boton_text}>Movimientos</Text>
+      </TouchableOpacity>
       {metodosPago}
       <TouchableOpacity
         style={[globalStyles.boton]}

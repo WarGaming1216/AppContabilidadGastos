@@ -29,6 +29,10 @@ export default function RootLayout() {
           options={{ headerTitle: "Saldo Inicial" }}
         />
         <Stack.Screen
+          name="metodos_pago/movimientos"
+          options={{ headerTitle: "Movimientos" }}
+        />
+        <Stack.Screen
           name="metodos_pago/[id]"
           options={{ headerTitle: "Cargando..." }}
         />
