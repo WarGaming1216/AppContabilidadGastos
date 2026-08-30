@@ -15,16 +15,23 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           contentStyle: {
-            backgroundColor: scheme === "dark" ? "#323232" : "white",
+            backgroundColor: scheme === "dark" ? "#16235C" : "white",
           },
           headerStyle: {
-            backgroundColor: scheme === "dark" ? "#323232" : "white",
+            backgroundColor: scheme === "dark" ? "#16235C" : "white",
           },
-          headerTintColor: scheme === "dark" ? "white" : "black",
+          headerTintColor: scheme === "dark" ? "#fff" : "#000",
         }}
       >
         <Stack.Screen name="index" options={{ headerTitle: "Resumen" }} />
-        <Stack.Screen name="gastos" options={{ headerTitle: "Gastos" }} />
+        <Stack.Screen
+          name="saldo_inicial"
+          options={{ headerTitle: "Saldo Inicial" }}
+        />
+        <Stack.Screen
+          name="metodos_pago/movimientos"
+          options={{ headerTitle: "Movimientos" }}
+        />
         <Stack.Screen
           name="metodos_pago/[id]"
           options={{ headerTitle: "Cargando..." }}

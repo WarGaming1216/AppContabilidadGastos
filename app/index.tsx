@@ -1,54 +1,49 @@
 import MyText from "@/components/MyText";
-import { Gasto, MetodosPago } from "@/interfaces/Gasto";
+import { MetodosPago, Saldos } from "@/interfaces/General_DB";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
 import {
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
-import { globalStyles } from "./constants/styles";
+import globalStyles from "./constants/styles";
 
 export default function Index() {
   const router = useRouter();
   const scheme = useColorScheme();
   const isDark = scheme === "dark";
   const db = useSQLiteContext();
-  const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [saldos, setSaldos] = useState<Saldos[]>([]);
   const [metodos, setMetodosPago] = useState<MetodosPago[]>([]);
 
-  const gastosCompletos =
-    gastos.length > 0 ? (
-      gastos.map((gasto) => (
-        <Text key={gasto.id}>
-          {gasto.titulo} - ${gasto.monto}
+  const saldosCompletos =
+    saldos.length > 0 ? (
+      saldos.map((saldo) => (
+        <Text key={saldo.id}>
+          {saldo.cuenta_id} - ${saldo.saldo_actual}
         </Text>
       ))
     ) : (
-      <MyText>No hay gastos por aqui...</MyText>
+      <MyText>No hay saldos registrados...</MyText>
     );
 
   const metodosPago =
     metodos.length > 0 ? (
       metodos.map((metodo) => (
         <TouchableOpacity
-          style={globalStyles.boton}
+          style={globalStyles.boton_navegacion}
           key={metodo.id}
-          onPress={
-            () =>
-              router.push({
-                pathname: "/metodos_pago/[id]",
-                params: { id: metodo.id.toString() },
-              })
-            // router.push(
-            //   `/metodos_pago/${metodo.nombre === "Mercado Pago" ? "mercado_pago" : metodo.nombre === "BBVA" ? "bbva" : "efectivo"}`,
-            // )
+          onPress={() =>
+            router.push({
+              pathname: "/metodos_pago/[id]",
+              params: { id: metodo.id.toString() },
+            })
           }
         >
-          <Text style={globalStyles.boton_text}>{metodo.nombre}</Text>
+          <Text style={globalStyles.boton_nav_text}>{metodo.nombre}</Text>
         </TouchableOpacity>
       ))
     ) : (
@@ -68,15 +63,15 @@ export default function Index() {
 
       async function cargarDatos() {
         try {
-          const resultGastos = await db.getAllAsync<Gasto>(
-            "SELECT * FROM gastos",
+          const resultSaldos = await db.getAllAsync<Saldos>(
+            "SELECT * FROM historial_saldos",
           );
           const resultMetodos = await db.getAllAsync<MetodosPago>(
             "SELECT * FROM cuentas_metodos",
           );
 
           if (isMounted) {
-            setGastos(resultGastos);
+            setSaldos(resultSaldos);
             setMetodosPago(resultMetodos);
           }
         } catch (error) {
@@ -103,37 +98,9 @@ export default function Index() {
           isDark ? globalStyles.dark : globalStyles.light,
         ]}
       >
-        Este es el primer input
+        Saldos:
       </Text>
-      <TextInput
-        style={[
-          globalStyles.input,
-          isDark ? globalStyles.dark : globalStyles.light,
-        ]}
-      ></TextInput>
-      <Text
-        style={[
-          globalStyles.label,
-          isDark ? globalStyles.dark : globalStyles.light,
-        ]}
-      >
-        Este es el segundo input
-      </Text>
-      <TextInput
-        style={[
-          globalStyles.input,
-          isDark ? globalStyles.dark : globalStyles.light,
-        ]}
-      ></TextInput>
-      <Text
-        style={[
-          globalStyles.label,
-          isDark ? globalStyles.dark : globalStyles.light,
-        ]}
-      >
-        Gastos:
-      </Text>
-      {gastosCompletos}
+      {saldosCompletos}
       <Text
         style={[
           globalStyles.label,
@@ -142,12 +109,18 @@ export default function Index() {
       >
         Métodos de pago:
       </Text>
+      <TouchableOpacity
+        style={globalStyles.boton}
+        onPress={() => router.push("/metodos_pago/movimientos")}
+      >
+        <Text style={globalStyles.boton_text}>Movimientos</Text>
+      </TouchableOpacity>
       {metodosPago}
       <TouchableOpacity
         style={[globalStyles.boton]}
-        onPress={() => router.push("/gastos")}
+        onPress={() => router.push("/saldo_inicial")}
       >
-        <Text style={[globalStyles.boton_text]}>Ir a agregar gastos</Text>
+        <Text style={[globalStyles.boton_text]}>Saldo</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={globalStyles.boton}

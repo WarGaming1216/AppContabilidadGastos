@@ -1,20 +1,23 @@
 import { StyleSheet } from "react-native";
 
-export const globalStyles = StyleSheet.create({
-  container: { padding: 20, paddingBottom: 60, marginBottom: 22 },
-  // En tu globalStyles:
+const globalStyles = StyleSheet.create({
+  container: {
+    padding: 20,
+    paddingBottom: 60,
+    marginBottom: 22,
+  },
   scrollView: {
-    flex: 1, // Garantiza que el ScrollView ocupe toda la pantalla
+    flex: 1,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40, // Espacio extra al final para no tapar los últimos botones/inputs
+    paddingBottom: 40,
   },
   caja: {
     margin: 10,
     padding: 10,
     borderStyle: "solid",
-    borderColor: "white",
+    borderColor: "#1F2E70",
     borderRadius: 10,
     borderWidth: 1,
   },
@@ -34,9 +37,17 @@ export const globalStyles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 5,
   },
+  date: {
+    paddingHorizontal: 10,
+    borderWidth: 2,
+    borderRadius: 5,
+    borderStyle: "solid",
+    borderColor: "rgba(143, 99, 225, 0.40)",
+    alignItems: "center",
+  },
   dark: {
     color: "white",
-    borderColor: "#ccc",
+    borderColor: "rgba(143, 99, 225, 0.40)",
   },
   light: {
     color: "#000",
@@ -44,11 +55,22 @@ export const globalStyles = StyleSheet.create({
   },
   boton: {
     margin: 20,
-    backgroundColor: "blue",
+    backgroundColor: "#72C84D",
+    borderRadius: 10,
+    padding: 10,
+  },
+  boton_navegacion: {
+    margin: 20,
+    backgroundColor: "#9063E1",
     borderRadius: 10,
     padding: 10,
   },
   boton_text: {
+    color: "#16235C",
+    textAlign: "center",
+    textTransform: "uppercase",
+  },
+  boton_nav_text: {
     color: "white",
     textAlign: "center",
     textTransform: "uppercase",
@@ -56,22 +78,28 @@ export const globalStyles = StyleSheet.create({
   boton_select: {
     marginTop: 10,
     marginBottom: 10,
-    backgroundColor: "black",
+    backgroundColor: "#111A44",
     borderRadius: 10,
     padding: 10,
   },
-  // En tu archivo de estilos globales o stylesheet local
+  fila_general: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-evenly",
+    marginHorizontal: 15,
+  },
+  // Diseños de las tablas
   fila: {
     flexDirection: "row",
     width: "100%",
-    alignItems: "center", // Alinea verticalmente los iconos y el texto
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#5a5a5a", // Bordes limpios por fila en lugar de cajas individuales
+    borderBottomColor: "#5a5a5a",
   },
   celdaNombre: {
-    flex: 1, // Toma todo el espacio sobrante disponible de la fila
+    flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   celdaTipo: {
     width: 90,
@@ -83,20 +111,22 @@ export const globalStyles = StyleSheet.create({
     textTransform: "capitalize",
   },
   celdaAcciones: {
-    width: 60, // Ancho fijo para botones/iconos pequeños como el de eliminar
+    width: 60,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
   },
   encabezado: {
-    backgroundColor: "#2a2a2a", // Diferenciador visual opcional para los títulos
+    backgroundColor: "#2a2a2a",
     borderBottomWidth: 2,
     borderBottomColor: "#666",
+    textAlign: "center",
+    textAlignVertical: "center",
   },
-  // Estos son del model para seleccionar el Gasto
+  // Modal de Selección
   selector: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "rgba(143, 99, 225, 0.40)",
     borderRadius: 8,
     padding: 12,
   },
@@ -104,7 +134,7 @@ export const globalStyles = StyleSheet.create({
     color: "#999",
   },
   textoSeleccionado: {
-    color: "#000",
+    color: "#111A44",
   },
   modalOverlay: {
     flex: 1,
@@ -113,14 +143,14 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
   },
   modalContentDark: {
-    backgroundColor: "#5e5e5e",
+    backgroundColor: "#1F2E70",
     borderRadius: 12,
     padding: 20,
     width: "80%",
     maxWidth: 300,
   },
   modalContentLight: {
-    backgroundColor: "#922020",
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 20,
     width: "80%",
@@ -147,7 +177,8 @@ export const globalStyles = StyleSheet.create({
     borderBottomColor: "#f0f0f0",
   },
   opcionSeleccionada: {
-    backgroundColor: "#e3f2fd",
+    borderRadius: 5,
+    backgroundColor: "#9191a7",
   },
   textoOpcionDark: {
     fontSize: 16,
@@ -155,10 +186,10 @@ export const globalStyles = StyleSheet.create({
   },
   textoOpcionLight: {
     fontSize: 16,
-    color: "#000000",
+    color: "#111A44",
   },
   textoOpcionSeleccionada: {
-    color: "#1976d2",
+    color: "#16235C",
     fontWeight: "500",
   },
   botonCerrar: {
@@ -167,9 +198,31 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
   },
   textoCerrar: {
-    backgroundColor: "#cfcfcf",
-    color: "#115396",
+    color: "#9063E1",
     fontSize: 16,
     fontWeight: "600",
   },
+  // Paginado
+  vista_pag: {
+    flex: 1,
+    width: "100%",
+    flexDirection: "row",
+  },
+  boton_pag: {
+    flex: 1,
+    marginHorizontal: 5,
+    marginVertical: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#9063E1",
+    boxShadow: "3px 4px 0px #9063E1",
+    borderBottomRightRadius: 8,
+  },
+  pag_seleccionado: {
+    backgroundColor: "#9191a7",
+  },
 });
+
+export default globalStyles;

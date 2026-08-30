@@ -26,7 +26,8 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
         -- 1. CATÁLOGO DE MÉTODOS DE PAGO / CUENTAS
         CREATE TABLE IF NOT EXISTS cuentas_metodos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL UNIQUE
+            nombre TEXT NOT NULL UNIQUE,
+            tipo TEXT NOT NULL DEFAULT 'Débito'
         );
 
         -- 2. HISTORIAL DE SALDOS
@@ -52,56 +53,48 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
         -- 4. TABLA DE SUSCRIPCIONES
         CREATE TABLE IF NOT EXISTS suscripciones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cuenta_id INTEGER NOT NULL,
             nombre TEXT NOT NULL,
             costo REAL NOT NULL,
             estatus INTEGER DEFAULT 1,
             dia_cobro INTEGER NOT NULL,
-            fecha_creacion TEXT DEFAULT (datetime('now', 'localtime'))
+            fecha_creacion TEXT DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
         );
 
         -- 5. TABLA DE PAGOS NO RECURRENTES
         CREATE TABLE IF NOT EXISTS pagos_no_recurrentes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cuenta_id INTEGER NOT NULL,
             nombre TEXT NOT NULL,
             costo REAL NOT NULL,
-            estatus INTEGER DEFAULT 1
+            estatus INTEGER DEFAULT 1,
+            FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
         );
 
         -- 6. TABLA DE DEUDAS
         CREATE TABLE IF NOT EXISTS deudas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cuenta_id INTEGER NOT NULL,
             nombre_acreedor TEXT NOT NULL,
             duracion_meses INTEGER,
             importe_por_periodo REAL,
             importe_pagado REAL DEFAULT 0.0,
             importe_total REAL NOT NULL,
-            estatus INTEGER DEFAULT 1
+            estatus INTEGER DEFAULT 1,
+            FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
         );
       `);
 
       // Seed inicial de cuentas de pago
       await db.execAsync(`
-        INSERT OR IGNORE INTO cuentas_metodos (nombre) VALUES ('Mercado Pago'), ('BBVA'), ('Efectivo');
+        INSERT OR IGNORE INTO cuentas_metodos (nombre) VALUES ('Mercado Pago'), ('BBVA'), ('Nu'), ('Efectivo');
       `);
       console.log("Métodos de pago iniciales registrados.");
 
       // Actualizar la versión a 1
       currentVersion = 1;
       await db.execAsync("PRAGMA user_version = 1");
-    }
-
-    // =========================================================================
-    // VERSIÓN 2: Ejemplo de migración futura
-    // =========================================================================
-
-    if (currentVersion === 1) {
-      await db.execAsync(`
-        ALTER TABLE cuentas_metodos ADD COLUMN tipo TEXT NOT NULL DEFAULT 'DEBITO';
-      `);
-
-      currentVersion = 2;
-      await db.execAsync("PRAGMA user_version = 2");
-      console.log("Base de datos migrada a la Versión 2.");
     }
 
     console.log("Base de datos lista y sincronizada.");
