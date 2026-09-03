@@ -1,5 +1,5 @@
-import globalStyles from "@/app/constants/styles";
-import React, { forwardRef } from "react";
+import globalStyles from "@/constants/styles";
+import { forwardRef } from "react";
 import { TextInput, type TextInputProps, useColorScheme } from "react-native";
 
 interface MyInputProps extends TextInputProps {

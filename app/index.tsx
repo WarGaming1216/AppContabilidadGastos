@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
-import globalStyles from "./constants/styles";
+import globalStyles from "../constants/styles";
 
 export default function Index() {
   const router = useRouter();
@@ -115,7 +115,7 @@ export default function Index() {
       >
         <Text style={globalStyles.boton_text}>Movimientos</Text>
       </TouchableOpacity>
-      {metodosPago}
+      {/* {metodosPago} */}
       <TouchableOpacity
         style={[globalStyles.boton]}
         onPress={() => router.push("/saldo_inicial")}

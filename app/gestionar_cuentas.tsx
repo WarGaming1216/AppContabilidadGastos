@@ -1,7 +1,6 @@
 import MyInput from "@/components/MyInput";
 import SelectorModal from "@/components/SelectorModal";
 import { MetodosPago } from "@/interfaces/General_DB";
-import { Text } from "@react-navigation/elements";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { Trash2Icon } from "lucide-react-native";
@@ -13,12 +12,13 @@ import {
   LayoutChangeEvent,
   Platform,
   ScrollView,
+  Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import globalStyles from "./constants/styles";
+import globalStyles from "../constants/styles";
 
 const tiposCuenta = ["Débito", "Crédito", "Efectivo"];
 

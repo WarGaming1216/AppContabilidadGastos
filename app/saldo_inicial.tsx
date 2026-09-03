@@ -5,7 +5,7 @@ import MyText from "@/components/MyText";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
-import globalStyles from "./constants/styles";
+import globalStyles from "../constants/styles";
 
 export default function AgregarGastoScreen() {
   const db = useSQLiteContext();

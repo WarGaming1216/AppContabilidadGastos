@@ -20,8 +20,8 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { formatearFecha, formatearMoneda } from "../constants/functions";
-import globalStyles from "../constants/styles";
+import { formatearFecha, formatearMoneda } from "../../constants/functions";
+import globalStyles from "../../constants/styles";
 
 const tipos_movimientos = [
   "Gasto",

@@ -1,7 +1,7 @@
-import globalStyles from "@/app/constants/styles";
 import MyInput from "@/components/MyInput";
 import MyText from "@/components/MyText";
 import SelectorModal from "@/components/SelectorModal";
+import globalStyles from "@/constants/styles";
 import { MetodosPago } from "@/interfaces/General_DB";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -17,7 +17,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { formatearFecha, formatearMoneda } from "../constants/functions";
+import { formatearFecha, formatearMoneda } from "../../constants/functions";
 
 interface HistorialSaldos {
   id: number;
