@@ -115,6 +115,9 @@ const globalStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
+    flexDirection: "row",
+    gap: 10,
+    marginRight: 20,
   },
   encabezado: {
     backgroundColor: "#2a2a2a",

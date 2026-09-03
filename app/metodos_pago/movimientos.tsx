@@ -1,3 +1,4 @@
+import EditarMovModal from "@/components/EditarMovModal";
 import MyInput from "@/components/MyInput";
 import MyText from "@/components/MyText";
 import SelectorModal from "@/components/SelectorModal";
@@ -7,9 +8,10 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { Eye, Trash } from "lucide-react-native";
+import { Pencil, Trash } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -201,9 +203,27 @@ export default function Movimientos_Page() {
                       {formatearFecha(movimiento.fecha_hora)}
                     </Text>
                   </View>
-                  <View style={globalStyles.celdaAcciones}>
-                    <Trash></Trash>
-                    <Eye></Eye>
+                  <View style={[globalStyles.celdaAcciones]}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        editarMov(
+                          movimiento.id,
+                          movimiento.tipo_movimiento,
+                          movimiento.concepto,
+                          movimiento.monto,
+                          movimiento.fecha_hora,
+                        )
+                      }
+                    >
+                      <Pencil color={"white"}></Pencil>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() =>
+                        eliminarMov(movimiento.id, movimiento.concepto)
+                      }
+                    >
+                      <Trash color={"red"}></Trash>
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))}
@@ -239,8 +259,6 @@ export default function Movimientos_Page() {
       return;
     }
 
-    console.error(cuentaIdSelec);
-
     try {
       const result = await db.runAsync(
         `INSERT INTO movimientos(cuenta_id, tipo_movimiento, monto, concepto, fecha_hora) VALUES(?, ?, ?, ?, ?)`,
@@ -258,6 +276,54 @@ export default function Movimientos_Page() {
     } catch (error) {
       console.error("Ocurrió un error: ", error);
     }
+  }
+
+  async function eliminarMov(movimiento_id: number, mov_concepto: string) {
+    if (!movimiento_id && movimiento_id < 0) {
+      console.error("No se proporcionó un id válido");
+    }
+
+    Alert.alert(
+      "Eliminar movimiento",
+      `¿Estás seguro que quieres eliminar el movimiento ${mov_concepto}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await db.runAsync(
+                `DELETE FROM movimientos WHERE id=?`,
+                movimiento_id,
+              );
+              if (response && response.changes > 0) {
+                cargarSaldos();
+                console.error("Se eliminó el movimiento exitosamente.");
+                return;
+              }
+            } catch (error) {
+              console.error("Ocurrió un error: ", error);
+              return;
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  async function editarMov(
+    movimiento_id: number,
+    mov_tipo: string,
+    mov_concepto: string,
+    mov_monto: number,
+    mov_fecha: Date,
+  ) {
+    if (!movimiento_id && movimiento_id < 0) {
+      console.error("No se proporcionó un id válido");
+    }
+
+    EditarMovModal(mov_tipo, mov_concepto, mov_monto, mov_fecha);
   }
 
   const nombresCuentas = cuentasCompletas.map((c) => c.nombre);
