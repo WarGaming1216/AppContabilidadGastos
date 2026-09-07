@@ -3,7 +3,7 @@ import { View } from "lucide-react-native";
 import { Text } from "react-native";
 
 export default function EditarMovModal(
-  tipo: string,
+  tipo: number,
   concepto: string,
   monto: number,
   fecha: Date,

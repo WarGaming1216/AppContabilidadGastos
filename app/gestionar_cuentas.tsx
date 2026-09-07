@@ -1,6 +1,6 @@
 import MyInput from "@/components/MyInput";
 import SelectorModal from "@/components/SelectorModal";
-import { MetodosPago } from "@/interfaces/General_DB";
+import { MetodosPago, TipoCuenta } from "@/interfaces/General_DB";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { Trash2Icon } from "lucide-react-native";
@@ -20,25 +20,78 @@ import {
 } from "react-native";
 import globalStyles from "../constants/styles";
 
-const tiposCuenta = ["Débito", "Crédito", "Efectivo"];
-
 export default function GestionarMetodos() {
   const scheme = useColorScheme();
   const isDark = scheme === "dark";
   const [cuenta, setCuenta] = useState("");
-  const [tipo, setTipo] = useState("");
+  const [limite, setLimite] = useState("");
+
   const [mensaje, setMensaje] = useState("");
   const [cuentas, setCuentas] = useState<MetodosPago[]>([]);
+
   const [origenModal, setOrigenModal] = useState<"NUEVA" | number | null>(null);
-  const [valorSeleccionado, setValorSeleccionado] = useState(
-    "Selecciona un tipo de gasto",
-  );
 
   // 1. Referencias para el ScrollView y para el Input
   const scrollViewRef = useRef<ScrollView>(null);
-  const inputRef = useRef<TextInput>(null);
-  const [inputOffsetY, setInputOffsetY] = useState(0);
+  const inputNombreRef = useRef<TextInput>(null);
+  const [inputOffsetNombreY, setInputOffsetNombreY] = useState(0);
+  const inputLimiteRef = useRef<TextInput>(null);
+  const [inputOffsetLimiteY, setInputOffsetLimiteY] = useState(0);
   const db = useSQLiteContext();
+
+  // Guardamos el ID numérico del tipo seleccionado para el formulario nuevo
+  const [tipoIdSeleccionado, setTipoIdSeleccionado] = useState<number | null>(
+    null,
+  );
+
+  // Guardamos la lista de la BD: TipoCuenta[] ({ id, tipo_cuenta })
+  const [tiposDB, setTiposDB] = useState<TipoCuenta[]>([]);
+
+  // Helper: Busca la etiqueta de texto según el ID numérico
+  const obtenerNombreTipo = (id: number) => {
+    const encontrado = tiposDB.find((t) => t.id === id);
+    return encontrado ? encontrado.tipo_cuenta : "Sin Tipo";
+  };
+
+  // Carga los tipos de cuenta desde SQLite
+  const cargarTipos = useCallback(async () => {
+    try {
+      const result = await db.getAllAsync<TipoCuenta>(
+        "SELECT * FROM tipo_cuenta",
+      );
+      setTiposDB(result);
+    } catch (error) {
+      console.error("Error al obtener tipos de cuentas: ", error);
+    }
+  }, [db]);
+
+  const handleSeleccionarTipo = async (nombreTexto: string) => {
+    // Buscamos el objeto de la BD que coincide con el texto seleccionado en el modal
+    const tipoEncontrado = tiposDB.find((t) => t.tipo_cuenta === nombreTexto);
+    if (!tipoEncontrado) return;
+
+    if (origenModal === "NUEVA") {
+      // 1. Guardamos solo el ID numérico para la nueva cuenta
+      setTipoIdSeleccionado(tipoEncontrado.id);
+    } else if (typeof origenModal === "number") {
+      // 2. Guardamos el ID numérico en la base de datos al editar la fila
+      try {
+        await db.runAsync(
+          "UPDATE cuentas_metodos SET tipo_cuenta = ? WHERE id = ?",
+          [tipoEncontrado.id, origenModal],
+        );
+        setMensaje(`Tipo actualizado a "${tipoEncontrado.tipo_cuenta}"`);
+        await cargarCuentas();
+      } catch (error) {
+        console.error("Error al actualizar tipo:", error);
+      }
+    }
+
+    setOrigenModal(null);
+  };
+
+  // Opciones en texto extraídas dinámicamente de la BD para el SelectorModal
+  const opcionesModalTextos = tiposDB.map((t) => t.tipo_cuenta);
 
   // 2. Listener global para capturar cuándo el teclado se oculta por GESTOS de Android
   useEffect(() => {
@@ -48,8 +101,12 @@ export default function GestionarMetodos() {
     const keyboardSubscription = Keyboard.addListener(hideEvent, () => {
       // Si el teclado se oculta por gestos, le quitamos el foco al Input
       // para que el próximo tap vuelva a disparar onFocus obligatoriamente
-      if (inputRef.current) {
-        inputRef.current.blur();
+      if (inputNombreRef.current) {
+        inputNombreRef.current.blur();
+      }
+
+      if (inputLimiteRef.current) {
+        inputLimiteRef.current.blur();
       }
     });
 
@@ -57,30 +114,6 @@ export default function GestionarMetodos() {
       keyboardSubscription.remove();
     };
   }, []);
-
-  const handleSeleccionarTipo = async (tipoSeleccionado: string) => {
-    if (origenModal === "NUEVA") {
-      // 1. Si viene del formulario "Agregar Cuenta"
-      setTipo(tipoSeleccionado);
-      setValorSeleccionado(tipoSeleccionado);
-    } else if (typeof origenModal === "number") {
-      // 2. Si viene de editar una fila existente en la tabla
-      try {
-        await db.runAsync("UPDATE cuentas_metodos SET tipo = ? WHERE id = ?", [
-          tipoSeleccionado,
-          origenModal,
-        ]);
-        setMensaje(`Tipo actualizado a "${tipoSeleccionado}"`);
-        await cargarCuentas();
-      } catch (error) {
-        console.error("Error al actualizar tipo:", error);
-        setMensaje("Error al actualizar el tipo de cuenta.");
-      }
-    }
-
-    // Cierra el modal restableciendo el estado a null
-    setOrigenModal(null);
-  };
 
   // 1. Extraemos la función de carga para poder invocarla manualmente
   const cargarCuentas = useCallback(async () => {
@@ -90,7 +123,7 @@ export default function GestionarMetodos() {
       );
       setCuentas(resultMetodos);
     } catch (error) {
-      console.error("Error al redefinir la lista de métodos:", error);
+      console.error("Error al redefinir la lista de métodos: ", error);
     }
   }, [db]);
 
@@ -98,7 +131,8 @@ export default function GestionarMetodos() {
   useFocusEffect(
     useCallback(() => {
       cargarCuentas();
-    }, [cargarCuentas]),
+      cargarTipos();
+    }, [cargarCuentas, cargarTipos]),
   );
 
   const handleGuardar = async () => {
@@ -107,33 +141,39 @@ export default function GestionarMetodos() {
       return;
     }
 
-    if (!tipo.trim()) {
-      setMensaje("El tipo de cuenta no puede estar vacío.");
+    if (!tipoIdSeleccionado) {
+      setMensaje("Debes seleccionar un tipo de cuenta.");
       return;
     }
 
-    const res = await guardarCuenta(cuenta, tipo);
+    if (tipoIdSeleccionado === 2 && !limite.trim()) {
+      setMensaje("Ingresa un límite válido para la cuenta de Cŕedito.");
+      return;
+    }
+
+    const res = await guardarCuenta(cuenta, limite, tipoIdSeleccionado);
 
     if (res && res.changes > 0) {
-      setMensaje(
-        `Cuenta ${cuenta} guardada con éxito (ID: ${res.lastInsertRowId})`,
-      );
+      setMensaje(`Cuenta ${cuenta} guardada con éxito`);
       setCuenta("");
-      setTipo("");
-      // 2. Refrescamos la lista de inmediato tras guardar
+      setTipoIdSeleccionado(null);
+      setLimite("");
       await cargarCuentas();
     } else {
       setMensaje("Error: No se pudo guardar la cuenta.");
     }
   };
 
-  async function guardarCuenta(cuenta: string, tipo: string) {
+  async function guardarCuenta(
+    cuentaNombre: string,
+    limite: string,
+    idTipo: number,
+  ) {
     try {
-      const result = await db.runAsync(
-        `INSERT INTO cuentas_metodos (nombre, tipo) VALUES (?, ?)`,
-        [cuenta, tipo],
+      return await db.runAsync(
+        `INSERT INTO cuentas_metodos (nombre, limite, tipo_cuenta) VALUES (?, ?, ?)`,
+        [cuentaNombre, limite, idTipo],
       );
-      return result;
     } catch (error) {
       console.error("Error al insertar:", error);
       return null;
@@ -197,6 +237,16 @@ export default function GestionarMetodos() {
                     Cuenta
                   </Text>
                 </View>
+                <View style={globalStyles.celdaTipo}>
+                  <Text
+                    style={[
+                      isDark ? globalStyles.dark : globalStyles.light,
+                      { fontWeight: "bold" },
+                    ]}
+                  >
+                    Tipo
+                  </Text>
+                </View>
                 <View style={globalStyles.celdaAcciones}>
                   <Text
                     style={[
@@ -214,26 +264,28 @@ export default function GestionarMetodos() {
               cuentas.length > 0 &&
               cuentas.map((item) => (
                 <View key={item.id} style={globalStyles.fila}>
-                  <View style={globalStyles.celdaNombre}>
-                    <Text
-                      style={isDark ? globalStyles.dark : globalStyles.light}
-                    >
-                      {item.nombre}
+                  <Text
+                    style={[
+                      globalStyles.celdaNombre,
+                      isDark ? globalStyles.dark : globalStyles.light,
+                    ]}
+                  >
+                    {item.nombre}
+                  </Text>
+
+                  {/* Se mapea el ID numérico que viene de cuentas_metodos a su texto legible */}
+                  <TouchableOpacity
+                    style={[
+                      globalStyles.celdaTipo,
+                      globalStyles.selector,
+                      globalStyles.boton_select,
+                    ]}
+                    onPress={() => setOrigenModal(item.id)}
+                  >
+                    <Text style={globalStyles.boton_nav_text}>
+                      {obtenerNombreTipo(item.tipo_cuenta)}
                     </Text>
-                  </View>
-
-                  <View style={globalStyles.celdaTipo}>
-                    {/* Botón que asigna el ID activo para abrir el modal */}
-                    <TouchableOpacity
-                      style={[globalStyles.selector, globalStyles.boton_select]}
-                      onPress={() => setOrigenModal(item.id)}
-                    >
-                      <Text style={[globalStyles.boton_nav_text]}>
-                        {item.tipo || "Tipo"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={globalStyles.celdaAcciones}
                     onPress={() => borrarCuenta(item.id, item.nombre)}
@@ -249,7 +301,8 @@ export default function GestionarMetodos() {
           style={globalStyles.caja}
           onLayout={(event: LayoutChangeEvent) => {
             const { y } = event.nativeEvent.layout;
-            setInputOffsetY(y);
+            setInputOffsetNombreY(y);
+            setInputOffsetLimiteY(y);
           }}
         >
           <Text
@@ -269,7 +322,7 @@ export default function GestionarMetodos() {
             Nombre:
           </Text>
           <MyInput
-            ref={inputRef} // Pasa la ref a tu componente personalizado (o usa ref directa si es TextInput)
+            ref={inputNombreRef}
             placeholder="Cuenta"
             value={cuenta}
             onChangeText={setCuenta}
@@ -277,12 +330,42 @@ export default function GestionarMetodos() {
               setTimeout(() => {
                 // scrollViewRef.current?.scrollToEnd({ animated: true });
                 scrollViewRef.current?.scrollTo({
-                  y: inputOffsetY,
+                  y: inputOffsetNombreY,
                   animated: true,
                 });
               }, 150);
             }}
           />
+          {tipoIdSeleccionado === 2 && (
+            <View>
+              <Text
+                style={[
+                  globalStyles.label,
+                  isDark ? globalStyles.dark : globalStyles.light,
+                ]}
+              >
+                Limite:
+              </Text>
+              <MyInput
+                ref={inputLimiteRef}
+                placeholder="Límite de la cuenta"
+                value={limite}
+                onChangeText={(texto) => {
+                  const textoLimpio = texto.replace(/[^0-9.]/g, "");
+                  setLimite(textoLimpio);
+                }}
+                keyboardType="numeric"
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollTo({
+                      y: inputOffsetLimiteY,
+                      animated: true,
+                    });
+                  }, 150);
+                }}
+              ></MyInput>
+            </View>
+          )}
           <Text
             style={[
               globalStyles.label,
@@ -296,8 +379,10 @@ export default function GestionarMetodos() {
               style={[globalStyles.selector, globalStyles.boton_select]}
               onPress={() => setOrigenModal("NUEVA")}
             >
-              <Text style={[globalStyles.boton_nav_text]}>
-                {valorSeleccionado || "Selecciona un tipo de cuenta"}
+              <Text style={globalStyles.boton_nav_text}>
+                {tipoIdSeleccionado
+                  ? obtenerNombreTipo(tipoIdSeleccionado)
+                  : "Selecciona un tipo de cuenta"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -316,11 +401,15 @@ export default function GestionarMetodos() {
         visible={origenModal !== null}
         onClose={() => setOrigenModal(null)}
         titulo="Tipo de cuenta"
-        opciones={tiposCuenta}
+        opciones={opcionesModalTextos}
         valorSeleccionado={
           origenModal === "NUEVA"
-            ? tipo
-            : cuentas.find((c) => c.id === origenModal)?.tipo || ""
+            ? tipoIdSeleccionado
+              ? obtenerNombreTipo(tipoIdSeleccionado)
+              : ""
+            : obtenerNombreTipo(
+                cuentas.find((c) => c.id === origenModal)?.tipo_cuenta || 0,
+              )
         }
         onSeleccionar={handleSeleccionarTipo}
         formatearOpcion="SI"

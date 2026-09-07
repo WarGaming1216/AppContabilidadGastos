@@ -8,6 +8,7 @@ const globalStyles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    paddingBottom: 20,
   },
   scrollContent: {
     padding: 20,
@@ -34,7 +35,7 @@ const globalStyles = StyleSheet.create({
   input: {
     borderWidth: 1,
     padding: 8,
-    marginBottom: 15,
+    marginVertical: 10,
     borderRadius: 5,
   },
   date: {
@@ -44,6 +45,7 @@ const globalStyles = StyleSheet.create({
     borderStyle: "solid",
     borderColor: "rgba(143, 99, 225, 0.40)",
     alignItems: "center",
+    marginVertical: 10,
   },
   dark: {
     color: "white",
@@ -54,7 +56,8 @@ const globalStyles = StyleSheet.create({
     borderColor: "#000",
   },
   boton: {
-    margin: 20,
+    marginVertical: 10,
+    marginHorizontal: 20,
     backgroundColor: "#72C84D",
     borderRadius: 10,
     padding: 10,
@@ -90,6 +93,7 @@ const globalStyles = StyleSheet.create({
   },
   // Diseños de las tablas
   fila: {
+    flex: 1,
     flexDirection: "row",
     width: "100%",
     alignItems: "center",
@@ -102,10 +106,17 @@ const globalStyles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   celdaTipo: {
-    width: 90,
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  celdaInput: {
+    flex: 1,
+    justifyContent: "center",
+    paddingLeft: 10,
+    paddingRight: 20,
   },
   tipo_texto: {
     textTransform: "capitalize",
@@ -225,6 +236,29 @@ const globalStyles = StyleSheet.create({
   },
   pag_seleccionado: {
     backgroundColor: "#9191a7",
+  },
+  // Navbar Estilos
+  contenedor: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#9063E1",
+    height: 75, // Una altura estándar para navbars
+  },
+  boton_nav: {
+    flex: 1,
+    gap: 3,
+    alignItems: "center",
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+  seleccionado: {
+    backgroundColor: "white",
+    borderColor: "white",
+    borderWidth: 1,
+    borderRadius: 4,
+    height: 4,
+    width: 4,
   },
 });
 

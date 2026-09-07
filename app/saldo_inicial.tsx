@@ -61,7 +61,10 @@ export default function AgregarGastoScreen() {
         placeholder="0.00"
         keyboardType="numeric"
         value={monto}
-        onChangeText={setMonto} // Modifica el estado con el número en texto
+        onChangeText={(texto) => {
+          const textoLimpio = texto.replace(/[^0-9.]/g, "");
+          setMonto(textoLimpio);
+        }}
       />
 
       <TouchableOpacity style={globalStyles.boton} onPress={guardarGastoLocal}>

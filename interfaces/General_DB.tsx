@@ -1,7 +1,8 @@
 export interface MetodosPago {
   id: number;
   nombre: string;
-  tipo: string;
+  limite: number;
+  tipo_cuenta: number;
 }
 
 export interface Saldos {
@@ -14,7 +15,7 @@ export interface Saldos {
 export interface Movimientos {
   id: number;
   cuenta_id: number;
-  tipo_movimiento: string;
+  tipo_movimiento: number;
   monto: number;
   concepto: string;
   fecha_hora: Date;
@@ -44,4 +45,14 @@ export interface Deudas {
   importe_pagado: number;
   importe_total: number;
   estatus: number;
+}
+
+export interface TipoMov {
+  id: number;
+  tipo_mov: string;
+}
+
+export interface TipoCuenta {
+  id: number;
+  tipo_cuenta: string;
 }
