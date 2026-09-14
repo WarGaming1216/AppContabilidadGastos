@@ -3,7 +3,7 @@ import globalStyles from "@/constants/styles";
 import { TipoCuenta, TipoMov } from "@/interfaces/General_DB";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { Check, Pencil, Plus, Trash } from "lucide-react-native";
+import { Check, Pencil, Plus, Trash, X } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -24,8 +24,14 @@ export default function Settings() {
   const [tiposCuentas, setTiposCuentas] = useState<TipoCuenta[]>([]);
   const [nuevoTipoMov, setNuevoTipoMov] = useState("");
   const [nuevoTipoCuenta, setNuevoTipoCuenta] = useState("");
-  const [editarTipoMov, setEditarTipoMov] = useState(false);
-  const [editarTipoCuenta, setEditarTipoCuenta] = useState(false);
+  const [tipoMovEditandoId, setTipoMovEditandoId] = useState<number | null>(
+    null,
+  );
+  const [textoMovEditando, setTextoMovEditando] = useState("");
+  const [tipoCuentaEditandoId, setTipoCuentaEditandoId] = useState<
+    number | null
+  >(null);
+  const [textoCuentaEditando, setTextoCuentaEditando] = useState("");
 
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRefMov = useRef<TextInput>(null);
@@ -89,6 +95,48 @@ export default function Settings() {
       cargarTiposMov();
     }, [cargarTiposCuentas, cargarTiposMov]),
   );
+
+  async function handleGuardarEdicionTipoMov(id: number) {
+    if (!textoMovEditando.trim()) return;
+
+    Keyboard.dismiss();
+
+    try {
+      const res = await db.runAsync(
+        "UPDATE tipo_movimiento SET tipo_mov = ? WHERE id = ?",
+        [textoMovEditando.trim(), id],
+      );
+
+      if (res && res.changes > 0) {
+        await cargarTiposMov();
+        setTipoMovEditandoId(null); // Sale del modo edición
+        setTextoMovEditando("");
+      }
+    } catch (error) {
+      console.error("Error al actualizar el tipo de movimiento: ", error);
+    }
+  }
+
+  async function handleGuardarEdicionTipoCuenta(id: number) {
+    if (!textoCuentaEditando.trim()) return;
+
+    Keyboard.dismiss();
+
+    try {
+      const res = await db.runAsync(
+        "UPDATE tipo_cuenta SET tipo_cuenta = ? WHERE id = ?",
+        [textoCuentaEditando.trim(), id],
+      );
+
+      if (res && res.changes > 0) {
+        await cargarTiposCuentas();
+        setTipoCuentaEditandoId(null);
+        setTextoCuentaEditando("");
+      }
+    } catch (error) {
+      console.error("", error);
+    }
+  }
 
   async function handleAgregarNuevoTipoMov() {
     if (!nuevoTipoMov.trim()) return;
@@ -227,35 +275,67 @@ export default function Settings() {
             </View>
 
             {tiposMov && tiposMov.length > 0 ? (
-              tiposMov.map((mov) => (
-                <View key={mov.id} style={globalStyles.fila}>
-                  {!editarTipoMov ? (
-                    <Text style={[globalStyles.celdaTipo, globalStyles.dark]}>
-                      {mov.tipo_mov}
-                    </Text>
-                  ) : (
-                    <View style={globalStyles.celdaInput}>
-                      <MyInput style={globalStyles.dark} value={mov.tipo_mov} />
+              tiposMov.map((mov) => {
+                const estaEditandoEstaFila = tipoMovEditandoId === mov.id;
+
+                return (
+                  <View key={mov.id} style={globalStyles.fila}>
+                    {!estaEditandoEstaFila ? (
+                      <Text style={[globalStyles.celdaTipo, globalStyles.dark]}>
+                        {mov.tipo_mov}
+                      </Text>
+                    ) : (
+                      <View style={globalStyles.celdaInput}>
+                        <MyInput
+                          style={globalStyles.dark}
+                          value={textoMovEditando}
+                          onChangeText={setTextoMovEditando}
+                        />
+                      </View>
+                    )}
+
+                    <View style={globalStyles.celdaAcciones}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (estaEditandoEstaFila) {
+                            // Si ya está editando esta fila, guarda los cambios
+                            handleGuardarEdicionTipoMov(mov.id);
+                          } else {
+                            // Activa el modo edición SOLO para este ID y precarga el texto actual
+                            setTipoMovEditandoId(mov.id);
+                            setTextoMovEditando(mov.tipo_mov);
+                          }
+                        }}
+                      >
+                        {!estaEditandoEstaFila ? (
+                          <Pencil color="white" />
+                        ) : (
+                          <Check color="#4CAF50" />
+                        )}
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (estaEditandoEstaFila) {
+                            // Cancelar edición si presiona eliminar/cancelar durante la edición
+                            setTipoMovEditandoId(null);
+                            setTextoMovEditando("");
+                            Keyboard.dismiss();
+                          } else {
+                            handleEliminarTipo(mov.tipo_mov, 0);
+                          }
+                        }}
+                      >
+                        {!estaEditandoEstaFila ? (
+                          <Trash color="red" />
+                        ) : (
+                          <X color="red" />
+                        )}
+                      </TouchableOpacity>
                     </View>
-                  )}
-                  <View style={globalStyles.celdaAcciones}>
-                    <TouchableOpacity
-                      onPress={() => setEditarTipoMov(!editarTipoMov)}
-                    >
-                      {!editarTipoMov ? (
-                        <Pencil color="white" />
-                      ) : (
-                        <Check color="white" />
-                      )}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => handleEliminarTipo(mov.tipo_mov, 0)}
-                    >
-                      <Trash color="red" />
-                    </TouchableOpacity>
                   </View>
-                </View>
-              ))
+                );
+              })
             ) : (
               <Text style={globalStyles.dark}>
                 No hay tipos de movimientos registrados.
@@ -315,38 +395,64 @@ export default function Settings() {
             </View>
 
             {tiposCuentas && tiposCuentas.length > 0 ? (
-              tiposCuentas.map((cuenta) => (
-                <View key={cuenta.id} style={globalStyles.fila}>
-                  {!editarTipoCuenta ? (
-                    <Text style={[globalStyles.celdaTipo, globalStyles.dark]}>
-                      {cuenta.tipo_cuenta}
-                    </Text>
-                  ) : (
-                    <View style={globalStyles.celdaInput}>
-                      <MyInput
-                        value={cuenta.tipo_cuenta}
-                        style={globalStyles.dark}
-                      />
+              tiposCuentas.map((cuenta) => {
+                const estaEditandoEstaFila = tipoCuentaEditandoId === cuenta.id;
+                return (
+                  <View key={cuenta.id} style={globalStyles.fila}>
+                    {!estaEditandoEstaFila ? (
+                      <Text style={[globalStyles.celdaTipo, globalStyles.dark]}>
+                        {cuenta.tipo_cuenta}
+                      </Text>
+                    ) : (
+                      <View style={globalStyles.celdaInput}>
+                        <MyInput
+                          style={globalStyles.dark}
+                          value={textoCuentaEditando}
+                          onChangeText={setTextoCuentaEditando}
+                        />
+                      </View>
+                    )}
+                    <View style={globalStyles.celdaAcciones}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (estaEditandoEstaFila) {
+                            // Si ya está editando esta fila, guarda los cambios
+                            handleGuardarEdicionTipoCuenta(cuenta.id);
+                          } else {
+                            // Activa el modo edición SOLO para este ID y precarga el texto actual
+                            setTipoCuentaEditandoId(cuenta.id);
+                            setTextoCuentaEditando(cuenta.tipo_cuenta);
+                          }
+                        }}
+                      >
+                        {!estaEditandoEstaFila ? (
+                          <Pencil color="white" />
+                        ) : (
+                          <Check color="#4CAF50" />
+                        )}
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (estaEditandoEstaFila) {
+                            // Cancelar edición si presiona eliminar/cancelar durante la edición
+                            setTipoCuentaEditandoId(null);
+                            setTextoCuentaEditando("");
+                            Keyboard.dismiss();
+                          } else {
+                            handleEliminarTipo(cuenta.tipo_cuenta, 0);
+                          }
+                        }}
+                      >
+                        {!estaEditandoEstaFila ? (
+                          <Trash color="red" />
+                        ) : (
+                          <X color="red" />
+                        )}
+                      </TouchableOpacity>
                     </View>
-                  )}
-                  <View style={globalStyles.celdaAcciones}>
-                    <TouchableOpacity
-                      onPress={() => setEditarTipoCuenta(!editarTipoCuenta)}
-                    >
-                      {!editarTipoCuenta ? (
-                        <Pencil color="white" />
-                      ) : (
-                        <Check color="white" />
-                      )}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => handleEliminarTipo(cuenta.tipo_cuenta, 1)}
-                    >
-                      <Trash color="red" />
-                    </TouchableOpacity>
                   </View>
-                </View>
-              ))
+                );
+              })
             ) : (
               <Text style={globalStyles.dark}>
                 No hay tipos de cuentas registrados.
