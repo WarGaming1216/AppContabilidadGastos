@@ -2,7 +2,7 @@ import EditarMovModal from "@/components/EditarMovModal";
 import MyInput from "@/components/MyInput";
 import MyText from "@/components/MyText";
 import SelectorModal from "@/components/SelectorModal";
-import { MetodosPago, Movimientos } from "@/interfaces/General_DB";
+import { MetodosPago, Movimientos, TipoMov } from "@/interfaces/General_DB";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -20,16 +20,8 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { formatearFecha, formatearMoneda } from "../constants/functions";
-import globalStyles from "../constants/styles";
-
-const tipos_movimientos = [
-  "Gasto",
-  "Pago automático",
-  "Pago adelantado",
-  "Devolución",
-  "Ingreso",
-];
+import { formatearFecha, formatearMoneda } from "../../constants/functions";
+import globalStyles from "../../constants/styles";
 
 export default function Movimientos_Page() {
   const [movSelec, setMovSelec] = useState("");
@@ -54,15 +46,45 @@ export default function Movimientos_Page() {
   const isDark = schema === "dark";
   const db = useSQLiteContext();
 
+  // Guardamos el ID numérico del tipo seleccionado para el formulario nuevo
+  const [tipoIdSeleccionado, setTipoIdSeleccionado] = useState<number | null>(
+    null,
+  );
+
+  // Guardamos la lista de la BD: TipoCuenta[] ({ id, tipo_cuenta })
+  const [tiposDB, setTiposDB] = useState<TipoMov[]>([]);
+
+  // Carga los tipos de cuenta desde SQLite
+  const cargarTipos = useCallback(async () => {
+    try {
+      const result = await db.getAllAsync<TipoMov>(
+        "SELECT * FROM tipo_movimiento",
+      );
+      setTiposDB(result);
+    } catch (error) {
+      console.error("Error al obtener tipos de cuentas: ", error);
+    }
+  }, [db]);
+
+  // Opciones en texto extraídas dinámicamente de la BD para el SelectorModal
+  const opcionesModalTextos = tiposDB.map((t) => t.tipo_mov);
+
   const alCambiarFecha = (
     event: DateTimePickerEvent,
     fechaSeleccionada?: Date,
   ) => {
+    if (event.type === "dismissed") {
+      setMostrarCalendario(false);
+      return;
+    }
+
     setMostrarCalendario(Platform.OS === "ios");
 
     if (fechaSeleccionada) {
       setFecha(fechaSeleccionada);
     }
+
+    setMostrarCalendario(false);
   };
 
   useEffect(() => {
@@ -98,11 +120,19 @@ export default function Movimientos_Page() {
   useFocusEffect(
     useCallback(() => {
       cargarSaldos();
-    }, [cargarSaldos]),
+      cargarTipos();
+    }, [cargarSaldos, cargarTipos]),
   );
 
-  function onSeleccionarMov(mov: string) {
-    setMovSelec(mov);
+  function onSeleccionarMov(nombreSeleccionado: string) {
+    setMovSelec(nombreSeleccionado);
+
+    const tipoEncontrado = tiposDB.find(
+      (t) => t.tipo_mov === nombreSeleccionado,
+    );
+    if (tipoEncontrado) {
+      setTipoIdSeleccionado(tipoEncontrado.id);
+    }
   }
 
   function onSeleccionarCuenta(nombreSeleccionado: string) {
@@ -122,6 +152,91 @@ export default function Movimientos_Page() {
     return pag;
   }
 
+  async function handleGuardarMovimiento() {
+    if (!cuentaIdSelec) {
+      console.error("No se ha seleccionado una cuenta.");
+      return;
+    }
+    if (tipoIdSeleccionado === 0) {
+      console.error("No se ha seleccionado un tipo de movimiento.");
+      return;
+    }
+
+    if (!monto.trim()) {
+      console.error("Ingresa un monto.");
+      return;
+    }
+    if (!concepto.trim()) {
+      console.error("Ingresa un concepto.");
+      return;
+    }
+
+    try {
+      const result = await db.runAsync(
+        `INSERT INTO movimientos(cuenta_id, tipo_movimiento, monto, concepto, fecha_hora) VALUES(?, ?, ?, ?, ?)`,
+        [cuentaIdSelec, tipoIdSeleccionado, monto, concepto, fecha.toString()],
+      );
+      if (result && result.changes > 0) {
+        console.log("El movimiento se registró con éxito.");
+        setConcepto("");
+        setMonto("");
+        cargarSaldos();
+      } else {
+        console.error("Error: No se pudo generar el movimiento.");
+      }
+    } catch (error) {
+      console.error("Ocurrió un error: ", error);
+    }
+  }
+
+  async function eliminarMov(movimiento_id: number, mov_concepto: string) {
+    if (!movimiento_id && movimiento_id < 0) {
+      console.error("No se proporcionó un id válido");
+    }
+
+    Alert.alert(
+      "Eliminar movimiento",
+      `¿Estás seguro que quieres eliminar el movimiento ${mov_concepto}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await db.runAsync(
+                `DELETE FROM movimientos WHERE id=?`,
+                movimiento_id,
+              );
+              if (response && response.changes > 0) {
+                cargarSaldos();
+                console.error("Se eliminó el movimiento exitosamente.");
+                return;
+              }
+            } catch (error) {
+              console.error("Ocurrió un error: ", error);
+              return;
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  async function editarMov(
+    movimiento_id: number,
+    mov_tipo: number,
+    mov_concepto: string,
+    mov_monto: number,
+    mov_fecha: Date,
+  ) {
+    if (!movimiento_id && movimiento_id < 0) {
+      console.error("No se proporcionó un id válido");
+    }
+
+    EditarMovModal(mov_tipo, mov_concepto, mov_monto, mov_fecha);
+  }
+
   const caja = (
     <>
       {pagSelec ? (
@@ -137,7 +252,11 @@ export default function Movimientos_Page() {
           <MyInput
             placeholder="Monto ($)"
             value={monto}
-            onChangeText={setMonto}
+            onChangeText={(texto) => {
+              const textoLimpio = texto.replace(/[^0-9.]/g, "");
+              setMonto(textoLimpio);
+            }}
+            keyboardType="numeric"
           ></MyInput>
           <MyInput
             placeholder="Concepto"
@@ -154,7 +273,7 @@ export default function Movimientos_Page() {
             <DateTimePicker
               value={fecha}
               mode="date"
-              display="default"
+              display={Platform.OS === "ios" ? "inline" : "default"}
               onChange={alCambiarFecha}
               maximumDate={new Date()}
             />
@@ -240,92 +359,6 @@ export default function Movimientos_Page() {
     </>
   );
 
-  async function handleGuardarMovimiento() {
-    if (!cuentaIdSelec) {
-      console.error("No se ha seleccionado una cuenta.");
-      return;
-    }
-    if (!movSelec) {
-      console.error("No se ha seleccionado un tipo de movimiento.");
-      return;
-    }
-
-    if (!monto.trim()) {
-      console.error("Ingresa un monto.");
-      return;
-    }
-    if (!concepto.trim()) {
-      console.error("Ingresa un concepto.");
-      return;
-    }
-
-    try {
-      const result = await db.runAsync(
-        `INSERT INTO movimientos(cuenta_id, tipo_movimiento, monto, concepto, fecha_hora) VALUES(?, ?, ?, ?, ?)`,
-        [cuentaIdSelec, movSelec, monto, concepto, fecha.toString()],
-      );
-      if (result && result.changes > 0) {
-        console.log("El movimiento se registró con éxito.");
-        setConcepto("");
-        setMonto("");
-        setMovSelec("");
-        cargarSaldos();
-      } else {
-        console.error("Error: No se pudo generar el movimiento.");
-      }
-    } catch (error) {
-      console.error("Ocurrió un error: ", error);
-    }
-  }
-
-  async function eliminarMov(movimiento_id: number, mov_concepto: string) {
-    if (!movimiento_id && movimiento_id < 0) {
-      console.error("No se proporcionó un id válido");
-    }
-
-    Alert.alert(
-      "Eliminar movimiento",
-      `¿Estás seguro que quieres eliminar el movimiento ${mov_concepto}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const response = await db.runAsync(
-                `DELETE FROM movimientos WHERE id=?`,
-                movimiento_id,
-              );
-              if (response && response.changes > 0) {
-                cargarSaldos();
-                console.error("Se eliminó el movimiento exitosamente.");
-                return;
-              }
-            } catch (error) {
-              console.error("Ocurrió un error: ", error);
-              return;
-            }
-          },
-        },
-      ],
-    );
-  }
-
-  async function editarMov(
-    movimiento_id: number,
-    mov_tipo: string,
-    mov_concepto: string,
-    mov_monto: number,
-    mov_fecha: Date,
-  ) {
-    if (!movimiento_id && movimiento_id < 0) {
-      console.error("No se proporcionó un id válido");
-    }
-
-    EditarMovModal(mov_tipo, mov_concepto, mov_monto, mov_fecha);
-  }
-
   const nombresCuentas = cuentasCompletas.map((c) => c.nombre);
 
   return (
@@ -404,7 +437,7 @@ export default function Movimientos_Page() {
       <SelectorModal
         visible={isVisibleCuenta}
         onClose={() => setIsVisibleCuenta(false)}
-        titulo={"Selecciona un tipo"}
+        titulo={"Cuentas"}
         opciones={nombresCuentas}
         valorSeleccionado={cuentaSelec}
         onSeleccionar={onSeleccionarCuenta}
@@ -413,8 +446,8 @@ export default function Movimientos_Page() {
       <SelectorModal
         visible={isVisibleMov}
         onClose={() => setIsVisibleMov(false)}
-        titulo={"Selecciona un tipo"}
-        opciones={tipos_movimientos}
+        titulo={"Tipos de movimiento"}
+        opciones={opcionesModalTextos}
         valorSeleccionado={movSelec}
         onSeleccionar={onSeleccionarMov}
         formatearOpcion="SI"

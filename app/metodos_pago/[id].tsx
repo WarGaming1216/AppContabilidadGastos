@@ -1,10 +1,10 @@
-import globalStyles from "@/app/constants/styles";
 import MyInput from "@/components/MyInput";
 import MyText from "@/components/MyText";
 import SelectorModal from "@/components/SelectorModal";
+import globalStyles from "@/constants/styles";
 import { MetodosPago } from "@/interfaces/General_DB";
 import DateTimePicker, {
-  DateTimePickerEvent,
+  DateTimePickerChangeEvent,
 } from "@react-native-community/datetimepicker";
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router"; // Importamos 'Stack' de expo-router
 import { useSQLiteContext } from "expo-sqlite";
@@ -17,7 +17,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { formatearFecha, formatearMoneda } from "../constants/functions";
+import { formatearFecha, formatearMoneda } from "../../constants/functions";
 
 interface HistorialSaldos {
   id: number;
@@ -71,7 +71,7 @@ export default function DetalleMetodoScreen() {
   const db = useSQLiteContext();
 
   const alCambiarFecha = (
-    event: DateTimePickerEvent,
+    _event: DateTimePickerChangeEvent,
     fechaSeleccionada?: Date,
   ) => {
     setMostrarCalendario(Platform.OS === "ios");
@@ -174,7 +174,7 @@ export default function DetalleMetodoScreen() {
   }
 
   const contenido =
-    cuenta?.tipo === "Crédito" ? (
+    cuenta?.tipo_cuenta === 2 ? (
       contenidoTabMov && contenidoTabMov.length > 0 ? (
         <View>
           <View style={[globalStyles.fila, globalStyles.encabezado]}>
@@ -282,7 +282,7 @@ export default function DetalleMetodoScreen() {
             value={fecha}
             mode="date"
             display="default"
-            onChange={alCambiarFecha}
+            onValueChange={alCambiarFecha}
             maximumDate={new Date()}
           />
         )}

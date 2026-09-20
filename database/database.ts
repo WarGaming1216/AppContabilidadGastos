@@ -10,7 +10,6 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
       PRAGMA foreign_keys = ON;
     `);
 
-    // 1. Obtener la versión actual almacenada en la base de datos
     const result = await db.getFirstAsync<{ user_version: number }>(
       "PRAGMA user_version",
     );
@@ -27,7 +26,9 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
         CREATE TABLE IF NOT EXISTS cuentas_metodos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL UNIQUE,
-            tipo TEXT NOT NULL DEFAULT 'Débito'
+            limite INTEGER NOT NULL DEFAULT 0,
+            tipo_cuenta INTEGER NOT NULL,
+            FOREIGN KEY (tipo_cuenta) REFERENCES tipo_cuenta(id) ON DELETE CASCADE
         );
 
         -- 2. HISTORIAL DE SALDOS
@@ -43,11 +44,12 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
         CREATE TABLE IF NOT EXISTS movimientos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cuenta_id INTEGER NOT NULL,
-            tipo_movimiento TEXT NOT NULL,
+            tipo_movimiento INTEGER NOT NULL,
             monto REAL NOT NULL,
             concepto TEXT NOT NULL,
             fecha_hora TEXT DEFAULT (datetime('now', 'localtime')),
-            FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
+            FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE,
+            FOREIGN KEY (tipo_movimiento) REFERENCES tipo_movimiento(id) ON DELETE CASCADE
         );
 
         -- 4. TABLA DE SUSCRIPCIONES
@@ -84,11 +86,27 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
             estatus INTEGER DEFAULT 1,
             FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS tipo_cuenta (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipo_cuenta TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS tipo_movimiento (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipo_mov TEXT NOT NULL UNIQUE
+        );
       `);
+
+      await db.execAsync(`
+        INSERT OR IGNORE INTO tipo_cuenta(tipo_cuenta) VALUES ('Débito'), ('Crédito'), ('Efectivo');
+        INSERT OR IGNORE INTO tipo_movimiento(tipo_mov) VALUES ('Gasto'), ('Pago automático'), ('Pago adelantado'), ('Devolución'), ('Ingreso');
+      `);
+      console.log("Tipos de cuentas y movimientos iniciales registrados.");
 
       // Seed inicial de cuentas de pago
       await db.execAsync(`
-        INSERT OR IGNORE INTO cuentas_metodos (nombre) VALUES ('Mercado Pago'), ('BBVA'), ('Nu'), ('Efectivo');
+        INSERT OR IGNORE INTO cuentas_metodos (nombre, limite, tipo_cuenta) VALUES ('Mercado Pago', '13500', 2), ('BBVA', '0', 1), ('Nu', '0', 1), ('Efectivo', '0', 3);
       `);
       console.log("Métodos de pago iniciales registrados.");
 

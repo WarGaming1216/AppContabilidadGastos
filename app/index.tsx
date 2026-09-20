@@ -1,4 +1,5 @@
 import MyText from "@/components/MyText";
+import { formatearMoneda } from "@/constants/functions";
 import { MetodosPago, Saldos } from "@/interfaces/General_DB";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
@@ -9,7 +10,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
-import globalStyles from "./constants/styles";
+import globalStyles from "../constants/styles";
 
 export default function Index() {
   const router = useRouter();
@@ -23,12 +24,24 @@ export default function Index() {
     saldos.length > 0 ? (
       saldos.map((saldo) => (
         <Text key={saldo.id}>
-          {saldo.cuenta_id} - ${saldo.saldo_actual}
+          {saldo.cuenta_id} - {formatearMoneda(saldo.saldo_actual)}
         </Text>
       ))
     ) : (
       <MyText>No hay saldos registrados...</MyText>
     );
+
+  function sumaSaldos(metodoId: number) {
+    let suma = 0;
+
+    saldos.map((saldo) => {
+      if (metodoId === saldo.cuenta_id) {
+        suma += saldo.saldo_actual;
+      }
+    });
+
+    return suma;
+  }
 
   const metodosPago =
     metodos.length > 0 ? (
@@ -44,6 +57,7 @@ export default function Index() {
           }
         >
           <Text style={globalStyles.boton_nav_text}>{metodo.nombre}</Text>
+          <Text>{formatearMoneda(sumaSaldos(metodo.id))}</Text>
         </TouchableOpacity>
       ))
     ) : (
@@ -101,7 +115,8 @@ export default function Index() {
         Saldos:
       </Text>
       {saldosCompletos}
-      <Text
+      {metodosPago}
+      {/* <Text
         style={[
           globalStyles.label,
           isDark ? globalStyles.dark : globalStyles.light,
@@ -115,7 +130,7 @@ export default function Index() {
       >
         <Text style={globalStyles.boton_text}>Movimientos</Text>
       </TouchableOpacity>
-      {metodosPago}
+      
       <TouchableOpacity
         style={[globalStyles.boton]}
         onPress={() => router.push("/saldo_inicial")}
@@ -127,7 +142,7 @@ export default function Index() {
         onPress={() => router.push("/gestionar_cuentas")}
       >
         <Text style={globalStyles.boton_text}>Gestionar Cuentas</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </ScrollView>
   );
 }
