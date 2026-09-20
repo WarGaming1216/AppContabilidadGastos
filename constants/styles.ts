@@ -252,6 +252,7 @@ const globalStyles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#9063E1",
     height: 75, // Una altura estándar para navbars
+    paddingBottom: 10,
   },
   boton_nav: {
     flex: 1,

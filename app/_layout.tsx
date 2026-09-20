@@ -51,8 +51,8 @@ export default function RootLayout() {
             />
             <Stack.Screen name="nomina" options={{ headerTitle: "Nómina" }} />
             <Stack.Screen
-              name="configurar_tipos"
-              options={{ headerTitle: "Configurar Tipos" }}
+              name="configuraciones"
+              options={{ headerTitle: "Configuraciones" }}
             />
           </Stack>
         </View>
