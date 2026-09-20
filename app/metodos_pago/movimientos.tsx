@@ -4,7 +4,7 @@ import MyText from "@/components/MyText";
 import SelectorModal from "@/components/SelectorModal";
 import { MetodosPago, Movimientos, TipoMov } from "@/interfaces/General_DB";
 import DateTimePicker, {
-  DateTimePickerChangeEvent,
+  DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
@@ -54,12 +54,6 @@ export default function Movimientos_Page() {
   // Guardamos la lista de la BD: TipoCuenta[] ({ id, tipo_cuenta })
   const [tiposDB, setTiposDB] = useState<TipoMov[]>([]);
 
-  // Helper: Busca la etiqueta de texto según el ID numérico
-  // const obtenerNombreTipo = (id: number) => {
-  //   const encontrado = tiposDB.find((t) => t.id === id);
-  //   return encontrado ? encontrado.tipo_mov : "Sin Tipo";
-  // };
-
   // Carga los tipos de cuenta desde SQLite
   const cargarTipos = useCallback(async () => {
     try {
@@ -76,14 +70,21 @@ export default function Movimientos_Page() {
   const opcionesModalTextos = tiposDB.map((t) => t.tipo_mov);
 
   const alCambiarFecha = (
-    _event: DateTimePickerChangeEvent,
+    event: DateTimePickerEvent,
     fechaSeleccionada?: Date,
   ) => {
+    if (event.type === "dismissed") {
+      setMostrarCalendario(false);
+      return;
+    }
+
     setMostrarCalendario(Platform.OS === "ios");
 
     if (fechaSeleccionada) {
       setFecha(fechaSeleccionada);
     }
+
+    setMostrarCalendario(false);
   };
 
   useEffect(() => {
@@ -272,8 +273,8 @@ export default function Movimientos_Page() {
             <DateTimePicker
               value={fecha}
               mode="date"
-              display="default"
-              onValueChange={alCambiarFecha}
+              display={Platform.OS === "ios" ? "inline" : "default"}
+              onChange={alCambiarFecha}
               maximumDate={new Date()}
             />
           )}

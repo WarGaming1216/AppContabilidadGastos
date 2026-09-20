@@ -104,6 +104,14 @@ const globalStyles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 6,
+    textAlign: "center",
+  },
+  celdaId: {
+    flex: 1,
+    textAlign: "center",
+    justifyContent: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 5,
   },
   celdaTipo: {
     flex: 1,

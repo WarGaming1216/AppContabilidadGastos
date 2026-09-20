@@ -1,9 +1,15 @@
 import MyText from "@/components/MyText";
+import { formatearMoneda } from "@/constants/functions";
 import { MetodosPago, Saldos } from "@/interfaces/General_DB";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
-import { ScrollView, Text, useColorScheme } from "react-native";
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+} from "react-native";
 import globalStyles from "../constants/styles";
 
 export default function Index() {
@@ -18,39 +24,52 @@ export default function Index() {
     saldos.length > 0 ? (
       saldos.map((saldo) => (
         <Text key={saldo.id}>
-          {saldo.cuenta_id} - ${saldo.saldo_actual}
+          {saldo.cuenta_id} - {formatearMoneda(saldo.saldo_actual)}
         </Text>
       ))
     ) : (
       <MyText>No hay saldos registrados...</MyText>
     );
 
-  // const metodosPago =
-  //   metodos.length > 0 ? (
-  //     metodos.map((metodo) => (
-  //       <TouchableOpacity
-  //         style={globalStyles.boton_navegacion}
-  //         key={metodo.id}
-  //         onPress={() =>
-  //           router.push({
-  //             pathname: "/metodos_pago/[id]",
-  //             params: { id: metodo.id.toString() },
-  //           })
-  //         }
-  //       >
-  //         <Text style={globalStyles.boton_nav_text}>{metodo.nombre}</Text>
-  //       </TouchableOpacity>
-  //     ))
-  //   ) : (
-  //     <Text
-  //       style={[
-  //         globalStyles.label,
-  //         isDark ? globalStyles.dark : globalStyles.light,
-  //       ]}
-  //     >
-  //       No hay métodos registrados...
-  //     </Text>
-  //   );
+  function sumaSaldos(metodoId: number) {
+    let suma = 0;
+
+    saldos.map((saldo) => {
+      if (metodoId === saldo.cuenta_id) {
+        suma += saldo.saldo_actual;
+      }
+    });
+
+    return suma;
+  }
+
+  const metodosPago =
+    metodos.length > 0 ? (
+      metodos.map((metodo) => (
+        <TouchableOpacity
+          style={globalStyles.boton_navegacion}
+          key={metodo.id}
+          onPress={() =>
+            router.push({
+              pathname: "/metodos_pago/[id]",
+              params: { id: metodo.id.toString() },
+            })
+          }
+        >
+          <Text style={globalStyles.boton_nav_text}>{metodo.nombre}</Text>
+          <Text>{formatearMoneda(sumaSaldos(metodo.id))}</Text>
+        </TouchableOpacity>
+      ))
+    ) : (
+      <Text
+        style={[
+          globalStyles.label,
+          isDark ? globalStyles.dark : globalStyles.light,
+        ]}
+      >
+        No hay métodos registrados...
+      </Text>
+    );
 
   useFocusEffect(
     useCallback(() => {
@@ -96,6 +115,7 @@ export default function Index() {
         Saldos:
       </Text>
       {saldosCompletos}
+      {metodosPago}
       {/* <Text
         style={[
           globalStyles.label,
@@ -110,7 +130,7 @@ export default function Index() {
       >
         <Text style={globalStyles.boton_text}>Movimientos</Text>
       </TouchableOpacity>
-      {metodosPago}
+      
       <TouchableOpacity
         style={[globalStyles.boton]}
         onPress={() => router.push("/saldo_inicial")}

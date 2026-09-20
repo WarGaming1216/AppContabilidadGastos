@@ -28,6 +28,10 @@ export default function RootLayout() {
               headerTintColor: scheme === "dark" ? "#fff" : "#000",
             }}
           >
+            <Stack.Screen
+              name="inicio_sesion"
+              options={{ headerTitle: "Login" }}
+            />
             <Stack.Screen name="index" options={{ headerTitle: "Inicio" }} />
             <Stack.Screen
               name="saldo_inicial"
@@ -45,6 +49,7 @@ export default function RootLayout() {
               name="gestionar_cuentas"
               options={{ headerTitle: "Gestionar Cuentas" }}
             />
+            <Stack.Screen name="nomina" options={{ headerTitle: "Nómina" }} />
             <Stack.Screen
               name="configurar_tipos"
               options={{ headerTitle: "Configurar Tipos" }}

@@ -1,6 +1,7 @@
 import globalStyles from "@/constants/styles";
 import { Href, usePathname, useRouter } from "expo-router";
 import {
+  BanknoteCheck,
   HandCoins,
   Home,
   Landmark,
@@ -63,6 +64,15 @@ export default function NavBar() {
         <Landmark color={obtenerColorIcono("/gestionar_cuentas")} size={24} />
         <View style={obtenerSeleccionado("/gestionar_cuentas")} />
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={globalStyles.boton_nav}
+        onPress={() => obtenerRuta("/nomina")}
+      >
+        <BanknoteCheck color={obtenerColorIcono("/nomina")} size={24} />
+        <View style={obtenerSeleccionado("/nomina")} />
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={globalStyles.boton_nav}
         onPress={() => obtenerRuta("/configurar_tipos")}
