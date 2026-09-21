@@ -1,6 +1,6 @@
 import MyInput from "@/components/MyInput";
 import globalStyles from "@/constants/styles";
-import { TipoCuenta, TipoMov } from "@/interfaces/General_DB";
+import { Categorias, TipoCuenta, TipoMov } from "@/interfaces/General_DB";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { Check, Pencil, Plus, Trash, X } from "lucide-react-native";
@@ -20,8 +20,14 @@ import {
 } from "react-native";
 
 export default function Settings() {
+  const [pagSelec, setPagSelec] = useState(0);
+
   const [tiposMov, setTiposMov] = useState<TipoMov[]>([]);
   const [tiposCuentas, setTiposCuentas] = useState<TipoCuenta[]>([]);
+
+  const [categoriaG, setCategoriaG] = useState<Categorias[]>([]);
+  const [categoriaI, setCategoriaI] = useState<Categorias[]>([]);
+
   const [nuevoTipoMov, setNuevoTipoMov] = useState("");
   const [nuevoTipoCuenta, setNuevoTipoCuenta] = useState("");
   const [tipoMovEditandoId, setTipoMovEditandoId] = useState<number | null>(
@@ -42,6 +48,10 @@ export default function Settings() {
   const schema = useColorScheme();
   const isDark = schema === "dark";
   const db = useSQLiteContext();
+
+  function CambiarPagina(nuevo: number) {
+    setPagSelec(nuevo);
+  }
 
   useEffect(() => {
     const hideEvent =
@@ -89,11 +99,27 @@ export default function Settings() {
     }
   }, [db]);
 
+  const cargarCategorias = useCallback(async () => {
+    try {
+      const responseG = await db.getAllAsync<Categorias>(
+        "SELECT * FROM categorias WHERE tipo = 'Gasto';",
+      );
+      setCategoriaG(responseG);
+      const responseI = await db.getAllAsync<Categorias>(
+        "SELECT * FROM categorias WHERE tipo = 'Ingreso';",
+      );
+      setCategoriaI(responseI);
+    } catch (error) {
+      console.error("Ocurrió un error al buscar las categorías: ", error);
+    }
+  }, [db]);
+
   useFocusEffect(
     useCallback(() => {
       cargarTiposCuentas();
       cargarTiposMov();
-    }, [cargarTiposCuentas, cargarTiposMov]),
+      cargarCategorias();
+    }, [cargarTiposCuentas, cargarTiposMov, cargarCategorias]),
   );
 
   async function handleGuardarEdicionTipoMov(id: number) {
@@ -245,244 +271,337 @@ export default function Settings() {
         contentContainerStyle={globalStyles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={globalStyles.vista_pag}>
+          <TouchableOpacity
+            style={[
+              globalStyles.boton_pag,
+              pagSelec === 0 ? globalStyles.pag_seleccionado : undefined,
+            ]}
+            onPress={() => CambiarPagina(0)}
+          >
+            <Text style={isDark ? globalStyles.dark : globalStyles.light}>
+              Gastos
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              globalStyles.boton_pag,
+              pagSelec === 1 ? globalStyles.pag_seleccionado : undefined,
+            ]}
+            onPress={() => CambiarPagina(1)}
+          >
+            <Text style={isDark ? globalStyles.dark : globalStyles.light}>
+              Cuentas
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              globalStyles.boton_pag,
+              pagSelec === 2 ? globalStyles.pag_seleccionado : undefined,
+            ]}
+            onPress={() => CambiarPagina(2)}
+          >
+            <Text style={globalStyles.dark}>Categorías</Text>
+          </TouchableOpacity>
+        </View>
         <View>
-          {/* TABLA 1: TIPO DE MOVIMIENTO */}
-          <View
-            style={globalStyles.caja}
-            onLayout={(event: LayoutChangeEvent) => {
-              // Guarda la posición Y de la CAJA 1 respecto al ScrollView
-              const { y } = event.nativeEvent.layout;
-              setInputOffsetMovY(y);
-            }}
-          >
-            <View style={[globalStyles.fila, globalStyles.encabezado]}>
-              <Text
-                style={[
-                  globalStyles.celdaTipo,
-                  isDark ? globalStyles.dark : globalStyles.light,
-                ]}
-              >
-                Tipo
-              </Text>
-              <Text
-                style={[
-                  globalStyles.celdaAcciones,
-                  isDark ? globalStyles.dark : globalStyles.light,
-                ]}
-              >
-                Acciones
-              </Text>
-            </View>
+          {pagSelec === 0 ? (
+            // {/* TABLA 1: TIPO DE MOVIMIENTO */}
+            <View
+              style={globalStyles.caja}
+              onLayout={(event: LayoutChangeEvent) => {
+                // Guarda la posición Y de la CAJA 1 respecto al ScrollView
+                const { y } = event.nativeEvent.layout;
+                setInputOffsetMovY(y);
+              }}
+            >
+              <View style={[globalStyles.fila, globalStyles.encabezado]}>
+                <Text
+                  style={[
+                    globalStyles.celdaTipo,
+                    isDark ? globalStyles.dark : globalStyles.light,
+                  ]}
+                >
+                  Tipo
+                </Text>
+                <Text
+                  style={[
+                    globalStyles.celdaAcciones,
+                    isDark ? globalStyles.dark : globalStyles.light,
+                  ]}
+                >
+                  Acciones
+                </Text>
+              </View>
 
-            {tiposMov && tiposMov.length > 0 ? (
-              tiposMov.map((mov) => {
-                const estaEditandoEstaFila = tipoMovEditandoId === mov.id;
+              {tiposMov && tiposMov.length > 0 ? (
+                tiposMov.map((mov) => {
+                  const estaEditandoEstaFila = tipoMovEditandoId === mov.id;
 
-                return (
-                  <View key={mov.id} style={globalStyles.fila}>
-                    {!estaEditandoEstaFila ? (
-                      <Text style={[globalStyles.celdaTipo, globalStyles.dark]}>
-                        {mov.tipo_mov}
-                      </Text>
-                    ) : (
-                      <View style={globalStyles.celdaInput}>
-                        <MyInput
-                          style={globalStyles.dark}
-                          value={textoMovEditando}
-                          onChangeText={setTextoMovEditando}
-                        />
+                  return (
+                    <View key={mov.id} style={globalStyles.fila}>
+                      {!estaEditandoEstaFila ? (
+                        <Text
+                          style={[globalStyles.celdaTipo, globalStyles.dark]}
+                        >
+                          {mov.tipo_mov}
+                        </Text>
+                      ) : (
+                        <View style={globalStyles.celdaInput}>
+                          <MyInput
+                            style={globalStyles.dark}
+                            value={textoMovEditando}
+                            onChangeText={setTextoMovEditando}
+                          />
+                        </View>
+                      )}
+
+                      <View style={globalStyles.celdaAcciones}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (estaEditandoEstaFila) {
+                              // Si ya está editando esta fila, guarda los cambios
+                              handleGuardarEdicionTipoMov(mov.id);
+                            } else {
+                              // Activa el modo edición SOLO para este ID y precarga el texto actual
+                              setTipoMovEditandoId(mov.id);
+                              setTextoMovEditando(mov.tipo_mov);
+                            }
+                          }}
+                        >
+                          {!estaEditandoEstaFila ? (
+                            <Pencil color="white" />
+                          ) : (
+                            <Check color="#4CAF50" />
+                          )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (estaEditandoEstaFila) {
+                              // Cancelar edición si presiona eliminar/cancelar durante la edición
+                              setTipoMovEditandoId(null);
+                              setTextoMovEditando("");
+                              Keyboard.dismiss();
+                            } else {
+                              handleEliminarTipo(mov.tipo_mov, 0);
+                            }
+                          }}
+                        >
+                          {!estaEditandoEstaFila ? (
+                            <Trash color="red" />
+                          ) : (
+                            <X color="red" />
+                          )}
+                        </TouchableOpacity>
                       </View>
-                    )}
-
-                    <View style={globalStyles.celdaAcciones}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (estaEditandoEstaFila) {
-                            // Si ya está editando esta fila, guarda los cambios
-                            handleGuardarEdicionTipoMov(mov.id);
-                          } else {
-                            // Activa el modo edición SOLO para este ID y precarga el texto actual
-                            setTipoMovEditandoId(mov.id);
-                            setTextoMovEditando(mov.tipo_mov);
-                          }
-                        }}
-                      >
-                        {!estaEditandoEstaFila ? (
-                          <Pencil color="white" />
-                        ) : (
-                          <Check color="#4CAF50" />
-                        )}
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (estaEditandoEstaFila) {
-                            // Cancelar edición si presiona eliminar/cancelar durante la edición
-                            setTipoMovEditandoId(null);
-                            setTextoMovEditando("");
-                            Keyboard.dismiss();
-                          } else {
-                            handleEliminarTipo(mov.tipo_mov, 0);
-                          }
-                        }}
-                      >
-                        {!estaEditandoEstaFila ? (
-                          <Trash color="red" />
-                        ) : (
-                          <X color="red" />
-                        )}
-                      </TouchableOpacity>
                     </View>
-                  </View>
-                );
-              })
-            ) : (
-              <Text style={globalStyles.dark}>
-                No hay tipos de movimientos registrados.
-              </Text>
-            )}
+                  );
+                })
+              ) : (
+                <Text style={globalStyles.dark}>
+                  No hay tipos de movimientos registrados.
+                </Text>
+              )}
 
-            <View style={globalStyles.fila}>
-              <View style={globalStyles.celdaInput}>
-                <MyInput
-                  ref={inputRefMov}
-                  placeholder="Nuevo tipo..."
-                  value={nuevoTipoMov}
-                  onChangeText={setNuevoTipoMov}
-                  onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollTo({
-                        y: inputOffsetMovY,
-                        animated: true,
-                      });
-                    }, 150);
-                  }}
-                />
-              </View>
-              <View style={globalStyles.celdaAcciones}>
-                <TouchableOpacity onPress={handleAgregarNuevoTipoMov}>
-                  <Plus color="#4CAF50" size={24} />
-                </TouchableOpacity>
+              <View style={globalStyles.fila}>
+                <View style={globalStyles.celdaInput}>
+                  <MyInput
+                    ref={inputRefMov}
+                    placeholder="Nuevo tipo..."
+                    value={nuevoTipoMov}
+                    onChangeText={setNuevoTipoMov}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollTo({
+                          y: inputOffsetMovY,
+                          animated: true,
+                        });
+                      }, 150);
+                    }}
+                  />
+                </View>
+                <View style={globalStyles.celdaAcciones}>
+                  <TouchableOpacity onPress={handleAgregarNuevoTipoMov}>
+                    <Plus color="#4CAF50" size={24} />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
+          ) : pagSelec === 1 ? (
+            <View
+              style={[[globalStyles.caja], { marginBottom: 50 }]}
+              onLayout={(event: LayoutChangeEvent) => {
+                const { y } = event.nativeEvent.layout;
+                setInputOffsetCuentaY(y);
+              }}
+            >
+              <View style={[globalStyles.fila, globalStyles.encabezado]}>
+                <Text
+                  style={[
+                    isDark ? globalStyles.dark : globalStyles.light,
+                    globalStyles.celdaTipo,
+                  ]}
+                >
+                  Tipos de cuenta
+                </Text>
+                <Text
+                  style={[
+                    isDark ? globalStyles.dark : globalStyles.light,
+                    globalStyles.celdaAcciones,
+                  ]}
+                >
+                  Acciones
+                </Text>
+              </View>
 
-          {/* TABLA 2: TIPO DE CUENTA */}
-          <View
-            style={[[globalStyles.caja], { marginBottom: 50 }]}
-            onLayout={(event: LayoutChangeEvent) => {
-              const { y } = event.nativeEvent.layout;
-              setInputOffsetCuentaY(y);
-            }}
-          >
-            <View style={[globalStyles.fila, globalStyles.encabezado]}>
-              <Text
-                style={[
-                  isDark ? globalStyles.dark : globalStyles.light,
-                  globalStyles.celdaTipo,
-                ]}
-              >
-                Tipos de cuenta
-              </Text>
-              <Text
-                style={[
-                  isDark ? globalStyles.dark : globalStyles.light,
-                  globalStyles.celdaAcciones,
-                ]}
-              >
-                Acciones
-              </Text>
-            </View>
-
-            {tiposCuentas && tiposCuentas.length > 0 ? (
-              tiposCuentas.map((cuenta) => {
-                const estaEditandoEstaFila = tipoCuentaEditandoId === cuenta.id;
-                return (
-                  <View key={cuenta.id} style={globalStyles.fila}>
-                    {!estaEditandoEstaFila ? (
-                      <Text style={[globalStyles.celdaTipo, globalStyles.dark]}>
-                        {cuenta.tipo_cuenta}
-                      </Text>
-                    ) : (
-                      <View style={globalStyles.celdaInput}>
-                        <MyInput
-                          style={globalStyles.dark}
-                          value={textoCuentaEditando}
-                          onChangeText={setTextoCuentaEditando}
-                        />
+              {tiposCuentas && tiposCuentas.length > 0 ? (
+                tiposCuentas.map((cuenta) => {
+                  const estaEditandoEstaFila =
+                    tipoCuentaEditandoId === cuenta.id;
+                  return (
+                    <View key={cuenta.id} style={globalStyles.fila}>
+                      {!estaEditandoEstaFila ? (
+                        <Text
+                          style={[globalStyles.celdaTipo, globalStyles.dark]}
+                        >
+                          {cuenta.tipo_cuenta}
+                        </Text>
+                      ) : (
+                        <View style={globalStyles.celdaInput}>
+                          <MyInput
+                            style={globalStyles.dark}
+                            value={textoCuentaEditando}
+                            onChangeText={setTextoCuentaEditando}
+                          />
+                        </View>
+                      )}
+                      <View style={globalStyles.celdaAcciones}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (estaEditandoEstaFila) {
+                              // Si ya está editando esta fila, guarda los cambios
+                              handleGuardarEdicionTipoCuenta(cuenta.id);
+                            } else {
+                              // Activa el modo edición SOLO para este ID y precarga el texto actual
+                              setTipoCuentaEditandoId(cuenta.id);
+                              setTextoCuentaEditando(cuenta.tipo_cuenta);
+                            }
+                          }}
+                        >
+                          {!estaEditandoEstaFila ? (
+                            <Pencil color="white" />
+                          ) : (
+                            <Check color="#4CAF50" />
+                          )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (estaEditandoEstaFila) {
+                              // Cancelar edición si presiona eliminar/cancelar durante la edición
+                              setTipoCuentaEditandoId(null);
+                              setTextoCuentaEditando("");
+                              Keyboard.dismiss();
+                            } else {
+                              handleEliminarTipo(cuenta.tipo_cuenta, 0);
+                            }
+                          }}
+                        >
+                          {!estaEditandoEstaFila ? (
+                            <Trash color="red" />
+                          ) : (
+                            <X color="red" />
+                          )}
+                        </TouchableOpacity>
                       </View>
-                    )}
-                    <View style={globalStyles.celdaAcciones}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (estaEditandoEstaFila) {
-                            // Si ya está editando esta fila, guarda los cambios
-                            handleGuardarEdicionTipoCuenta(cuenta.id);
-                          } else {
-                            // Activa el modo edición SOLO para este ID y precarga el texto actual
-                            setTipoCuentaEditandoId(cuenta.id);
-                            setTextoCuentaEditando(cuenta.tipo_cuenta);
-                          }
-                        }}
-                      >
-                        {!estaEditandoEstaFila ? (
-                          <Pencil color="white" />
-                        ) : (
-                          <Check color="#4CAF50" />
-                        )}
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (estaEditandoEstaFila) {
-                            // Cancelar edición si presiona eliminar/cancelar durante la edición
-                            setTipoCuentaEditandoId(null);
-                            setTextoCuentaEditando("");
-                            Keyboard.dismiss();
-                          } else {
-                            handleEliminarTipo(cuenta.tipo_cuenta, 0);
-                          }
-                        }}
-                      >
-                        {!estaEditandoEstaFila ? (
-                          <Trash color="red" />
-                        ) : (
-                          <X color="red" />
-                        )}
-                      </TouchableOpacity>
                     </View>
-                  </View>
-                );
-              })
-            ) : (
-              <Text style={globalStyles.dark}>
-                No hay tipos de cuentas registrados.
-              </Text>
-            )}
+                  );
+                })
+              ) : (
+                <Text style={globalStyles.dark}>
+                  No hay tipos de cuentas registrados.
+                </Text>
+              )}
 
-            <View style={globalStyles.fila}>
-              <View style={globalStyles.celdaInput}>
-                <MyInput
-                  ref={inputRefCuenta}
-                  placeholder="Nuevo tipo..."
-                  value={nuevoTipoCuenta}
-                  onChangeText={setNuevoTipoCuenta}
-                  onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollTo({
-                        y: inputOffsetCuentaY,
-                        animated: true,
-                      });
-                    }, 150);
-                  }}
-                />
-              </View>
-              <View style={globalStyles.celdaAcciones}>
-                <TouchableOpacity onPress={handleAgregarNuevoTipoCuenta}>
-                  <Plus color="#4CAF50" size={24} />
-                </TouchableOpacity>
+              <View style={globalStyles.fila}>
+                <View style={globalStyles.celdaInput}>
+                  <MyInput
+                    ref={inputRefCuenta}
+                    placeholder="Nuevo tipo..."
+                    value={nuevoTipoCuenta}
+                    onChangeText={setNuevoTipoCuenta}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollTo({
+                          y: inputOffsetCuentaY,
+                          animated: true,
+                        });
+                      }, 150);
+                    }}
+                  />
+                </View>
+                <View style={globalStyles.celdaAcciones}>
+                  <TouchableOpacity onPress={handleAgregarNuevoTipoCuenta}>
+                    <Plus color="#4CAF50" size={24} />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
+          ) : pagSelec === 2 ? (
+            <View style={globalStyles.caja}>
+              <Text style={[globalStyles.dark, globalStyles.label]}>
+                Gastos
+              </Text>
+              <View style={[globalStyles.encabezado, globalStyles.fila]}>
+                <Text style={[globalStyles.celdaNombre, globalStyles.dark]}>
+                  Nombre
+                </Text>
+                <Text style={[globalStyles.celdaAcciones, globalStyles.dark]}>
+                  Acciones
+                </Text>
+              </View>
+              {categoriaG.map((categoria) => (
+                <View key={categoria.id} style={globalStyles.fila}>
+                  <Text style={[globalStyles.dark, globalStyles.celdaNombre]}>
+                    {categoria.categoria}
+                  </Text>
+                  <View style={globalStyles.celdaAcciones}>
+                    <Pencil color={"white"} />
+                    <Trash color={"red"} />
+                  </View>
+                </View>
+              ))}
+              <Text style={[globalStyles.dark, globalStyles.label]}>
+                Ingresos
+              </Text>
+              <View style={[globalStyles.encabezado, globalStyles.fila]}>
+                <Text style={[globalStyles.celdaNombre, globalStyles.dark]}>
+                  Nombre
+                </Text>
+                <Text style={[globalStyles.celdaAcciones, globalStyles.dark]}>
+                  Acciones
+                </Text>
+              </View>
+              {categoriaI.map((categoria) => (
+                <View key={categoria.id} style={globalStyles.fila}>
+                  <Text style={[globalStyles.dark, globalStyles.celdaNombre]}>
+                    {categoria.categoria}
+                  </Text>
+                  <View style={globalStyles.celdaAcciones}>
+                    <Pencil color={"white"} />
+                    <Trash color={"red"} />
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View>
+              <Text style={globalStyles.dark}>
+                Ocurrió un error en el páginado de este módulo, intenta cambiar
+                entre módulos para solucionarlo.
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

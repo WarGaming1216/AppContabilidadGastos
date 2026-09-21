@@ -110,7 +110,7 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
       await db.execAsync(`
         INSERT OR IGNORE INTO tipo_cuenta(tipo_cuenta) VALUES ('Débito'), ('Crédito'), ('Efectivo');
         INSERT OR IGNORE INTO tipo_movimiento(tipo_mov) VALUES ('Gasto'), ('Pago automático'), ('Pago adelantado'), ('Devolución'), ('Ingreso');
-        INSERT OR IGNORE INTO categorias(categoria, tipo) VALUES ('Abarrotes', 'Gasto'), ('Entretenimiento', ' Gasto'), ('Servicios', 'Gasto'), ('Suscripciones', 'Gasto'), ('Bonos', 'Ingreso'), ('Inversiones', 'Ingreso'), ('Otros', 'Ingreso');
+        INSERT OR IGNORE INTO categorias(categoria, tipo) VALUES ('Abarrotes', 'Gasto'), ('Entretenimiento', ' Gasto'), ('Servicios', 'Gasto'), ('Suscripciones', 'Gasto'), ('Gasolina', 'Gasto'), ('Bonos', 'Ingreso'), ('Inversiones', 'Ingreso'), ('Otros', 'Ingreso');
       `);
       console.log("Tipos de cuentas y movimientos iniciales registrados.");
 
