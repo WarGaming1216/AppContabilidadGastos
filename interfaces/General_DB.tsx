@@ -56,3 +56,9 @@ export interface TipoCuenta {
   id: number;
   tipo_cuenta: string;
 }
+
+export interface Categorias {
+  id: number;
+  categoria: string;
+  tipo: string;
+}

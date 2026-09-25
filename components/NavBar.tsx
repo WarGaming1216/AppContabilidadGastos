@@ -75,10 +75,10 @@ export default function NavBar() {
 
       <TouchableOpacity
         style={globalStyles.boton_nav}
-        onPress={() => obtenerRuta("/configurar_tipos")}
+        onPress={() => obtenerRuta("/configuraciones")}
       >
-        <Settings2 color={obtenerColorIcono("/configurar_tipos")} size={24} />
-        <View style={obtenerSeleccionado("/configurar_tipos")} />
+        <Settings2 color={obtenerColorIcono("/configuraciones")} size={24} />
+        <View style={obtenerSeleccionado("/configuraciones")} />
       </TouchableOpacity>
     </View>
   );

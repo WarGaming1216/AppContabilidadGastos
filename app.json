@@ -2,7 +2,7 @@
   "expo": {
     "name": "GastosPendientes",
     "slug": "GastosPendientes",
-    "version": "0.3.4",
+    "version": "0.3.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "gastospendientes",

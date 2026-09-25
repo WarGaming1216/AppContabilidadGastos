@@ -87,20 +87,30 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
             FOREIGN KEY (cuenta_id) REFERENCES cuentas_metodos(id) ON DELETE CASCADE
         );
 
+        -- 7. TABLA DE TIPOS DE CUENTAS
         CREATE TABLE IF NOT EXISTS tipo_cuenta (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tipo_cuenta TEXT NOT NULL UNIQUE
         );
 
+        -- 8. TABLA DE TIPOS DE MOVIMIENTOS
         CREATE TABLE IF NOT EXISTS tipo_movimiento (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             tipo_mov TEXT NOT NULL UNIQUE
         );
+
+        -- 9. TABLA DE CATEGORÍAS
+        CREATE TABLE IF NOT EXISTS categorias(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            categoria TEXT NOT NULL UNIQUE,
+            tipo TEXT NOT NULL
+        )
       `);
 
       await db.execAsync(`
         INSERT OR IGNORE INTO tipo_cuenta(tipo_cuenta) VALUES ('Débito'), ('Crédito'), ('Efectivo');
         INSERT OR IGNORE INTO tipo_movimiento(tipo_mov) VALUES ('Gasto'), ('Pago automático'), ('Pago adelantado'), ('Devolución'), ('Ingreso');
+        INSERT OR IGNORE INTO categorias(categoria, tipo) VALUES ('Abarrotes', 'Gasto'), ('Entretenimiento', ' Gasto'), ('Servicios', 'Gasto'), ('Suscripciones', 'Gasto'), ('Gasolina', 'Gasto'), ('Bonos', 'Ingreso'), ('Inversiones', 'Ingreso'), ('Otros', 'Ingreso');
       `);
       console.log("Tipos de cuentas y movimientos iniciales registrados.");
 
