@@ -1,6 +1,5 @@
-import MyText from "@/components/MyText";
-import { formatearMoneda } from "@/constants/functions";
-import { MetodosPago, Saldos } from "@/interfaces/General_DB";
+import TarCredBar from "@/components/TarCredBar";
+import { MetodosPago, Movimientos, Saldos } from "@/interfaces/General_DB";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useState } from "react";
@@ -19,17 +18,7 @@ export default function Index() {
   const db = useSQLiteContext();
   const [saldos, setSaldos] = useState<Saldos[]>([]);
   const [metodos, setMetodosPago] = useState<MetodosPago[]>([]);
-
-  const saldosCompletos =
-    saldos.length > 0 ? (
-      saldos.map((saldo) => (
-        <Text key={saldo.id}>
-          {saldo.cuenta_id} - {formatearMoneda(saldo.saldo_actual)}
-        </Text>
-      ))
-    ) : (
-      <MyText>No hay saldos registrados...</MyText>
-    );
+  const [movimientos, setMovimientos] = useState<Movimientos[]>([]);
 
   function sumaSaldos(metodoId: number) {
     let suma = 0;
@@ -43,11 +32,22 @@ export default function Index() {
     return suma;
   }
 
+  function sumaGastos(metodoId: number) {
+    let gastos = 0;
+    if (movimientos.length > 0) {
+      movimientos.map((mov) => {
+        if (metodoId === mov.cuenta_id && mov.tipo_movimiento === 1) {
+          gastos += mov.monto;
+        }
+      });
+    }
+    return gastos;
+  }
+
   const metodosPago =
     metodos.length > 0 ? (
       metodos.map((metodo) => (
         <TouchableOpacity
-          style={globalStyles.boton_navegacion}
           key={metodo.id}
           onPress={() =>
             router.push({
@@ -56,8 +56,12 @@ export default function Index() {
             })
           }
         >
-          <Text style={globalStyles.boton_nav_text}>{metodo.nombre}</Text>
-          <Text>{formatearMoneda(sumaSaldos(metodo.id))}</Text>
+          {TarCredBar({
+            nombreCuenta: metodo.nombre,
+            limite: metodo.limite > 0 ? metodo.limite : sumaSaldos(metodo.id),
+            gasto: sumaGastos(metodo.id),
+            fecha_corte: metodo.fecha_corte,
+          })}
         </TouchableOpacity>
       ))
     ) : (
@@ -83,10 +87,14 @@ export default function Index() {
           const resultMetodos = await db.getAllAsync<MetodosPago>(
             "SELECT * FROM cuentas_metodos",
           );
+          const resultMov = await db.getAllAsync<Movimientos>(
+            "SELECT * FROM movimientos",
+          );
 
           if (isMounted) {
             setSaldos(resultSaldos);
             setMetodosPago(resultMetodos);
+            setMovimientos(resultMov);
           }
         } catch (error) {
           console.error("Error al redefinir la lista de métodos:", error);
@@ -112,37 +120,9 @@ export default function Index() {
           isDark ? globalStyles.dark : globalStyles.light,
         ]}
       >
-        Saldos:
+        Cuentas y Saldos:
       </Text>
-      {saldosCompletos}
       {metodosPago}
-      {/* <Text
-        style={[
-          globalStyles.label,
-          isDark ? globalStyles.dark : globalStyles.light,
-        ]}
-      >
-        Métodos de pago:
-      </Text>
-      <TouchableOpacity
-        style={globalStyles.boton}
-        onPress={() => router.push("/metodos_pago/movimientos")}
-      >
-        <Text style={globalStyles.boton_text}>Movimientos</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity
-        style={[globalStyles.boton]}
-        onPress={() => router.push("/saldo_inicial")}
-      >
-        <Text style={[globalStyles.boton_text]}>Saldo</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={globalStyles.boton}
-        onPress={() => router.push("/gestionar_cuentas")}
-      >
-        <Text style={globalStyles.boton_text}>Gestionar Cuentas</Text>
-      </TouchableOpacity> */}
     </ScrollView>
   );
 }

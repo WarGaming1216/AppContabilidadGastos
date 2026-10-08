@@ -3,6 +3,7 @@ export interface MetodosPago {
   nombre: string;
   limite: number;
   tipo_cuenta: number;
+  fecha_corte: number;
 }
 
 export interface Saldos {

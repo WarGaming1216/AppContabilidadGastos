@@ -253,6 +253,7 @@ const globalStyles = StyleSheet.create({
     backgroundColor: "#9063E1",
     height: 75, // Una altura estándar para navbars
     paddingBottom: 10,
+    boxShadow: "0px -3px 3px #16235C",
   },
   boton_nav: {
     flex: 1,
@@ -268,6 +269,43 @@ const globalStyles = StyleSheet.create({
     borderRadius: 4,
     height: 4,
     width: 4,
+  },
+  // Barra de progreso
+  tarjetaContenedor: {
+    backgroundColor: "#9063E1",
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 8,
+  },
+  encabezado_progreso: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  titulo: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  subtitulo: {
+    color: "#B0BEC5",
+    fontSize: 14,
+  },
+  barraFondo: {
+    height: 12,
+    width: "100%",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  barraRelleno: {
+    height: "100%",
+    borderRadius: 6,
+  },
+  textoLimite: {
+    color: "#B0BEC5",
+    fontSize: 12,
+    marginTop: 6,
+    textAlign: "right",
   },
 });
 

@@ -28,6 +28,7 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
             nombre TEXT NOT NULL UNIQUE,
             limite INTEGER NOT NULL DEFAULT 0,
             tipo_cuenta INTEGER NOT NULL,
+            fecha_corte INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (tipo_cuenta) REFERENCES tipo_cuenta(id) ON DELETE CASCADE
         );
 
@@ -116,7 +117,7 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
 
       // Seed inicial de cuentas de pago
       await db.execAsync(`
-        INSERT OR IGNORE INTO cuentas_metodos (nombre, limite, tipo_cuenta) VALUES ('Mercado Pago', '13500', 2), ('BBVA', '0', 1), ('Nu', '0', 1), ('Efectivo', '0', 3);
+        INSERT OR IGNORE INTO cuentas_metodos (nombre, limite, tipo_cuenta, fecha_corte) VALUES ('Mercado Pago', '13500', 2, 13), ('BBVA', '0', 1, 0), ('Nu', '0', 1, 0), ('Efectivo', '0', 3, 0), ('BBVA Oro', '47400', 2, 13);
       `);
       console.log("Métodos de pago iniciales registrados.");
 
