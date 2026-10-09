@@ -85,7 +85,7 @@ export default function Index() {
             "SELECT * FROM historial_saldos",
           );
           const resultMetodos = await db.getAllAsync<MetodosPago>(
-            "SELECT * FROM cuentas_metodos",
+            "SELECT * FROM cuentas_metodos ORDER BY posicion ASC",
           );
           const resultMov = await db.getAllAsync<Movimientos>(
             "SELECT * FROM movimientos",

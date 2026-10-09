@@ -25,10 +25,12 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
         -- 1. CATÁLOGO DE MÉTODOS DE PAGO / CUENTAS
         CREATE TABLE IF NOT EXISTS cuentas_metodos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            posicion INTEGER NOT NULL,
             nombre TEXT NOT NULL UNIQUE,
             limite INTEGER NOT NULL DEFAULT 0,
             tipo_cuenta INTEGER NOT NULL,
             fecha_corte INTEGER NOT NULL DEFAULT 0,
+            fecha_pago INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (tipo_cuenta) REFERENCES tipo_cuenta(id) ON DELETE CASCADE
         );
 
@@ -91,33 +93,36 @@ export async function iniciarBaseDeDatos(db: SQLiteDatabase) {
         -- 7. TABLA DE TIPOS DE CUENTAS
         CREATE TABLE IF NOT EXISTS tipo_cuenta (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tipo_cuenta TEXT NOT NULL UNIQUE
+            tipo_cuenta TEXT NOT NULL UNIQUE,
+            posicion INTEGER NOT NULL
         );
 
         -- 8. TABLA DE TIPOS DE MOVIMIENTOS
         CREATE TABLE IF NOT EXISTS tipo_movimiento (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tipo_mov TEXT NOT NULL UNIQUE
+            tipo_mov TEXT NOT NULL UNIQUE,
+            posicion INTEGER NOT NULL
         );
 
         -- 9. TABLA DE CATEGORÍAS
         CREATE TABLE IF NOT EXISTS categorias(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             categoria TEXT NOT NULL UNIQUE,
-            tipo TEXT NOT NULL
+            tipo TEXT NOT NULL,
+            posicion INTEGER NOT NULL
         )
       `);
 
       await db.execAsync(`
-        INSERT OR IGNORE INTO tipo_cuenta(tipo_cuenta) VALUES ('Débito'), ('Crédito'), ('Efectivo');
-        INSERT OR IGNORE INTO tipo_movimiento(tipo_mov) VALUES ('Gasto'), ('Pago automático'), ('Pago adelantado'), ('Devolución'), ('Ingreso');
-        INSERT OR IGNORE INTO categorias(categoria, tipo) VALUES ('Abarrotes', 'Gasto'), ('Entretenimiento', ' Gasto'), ('Servicios', 'Gasto'), ('Suscripciones', 'Gasto'), ('Gasolina', 'Gasto'), ('Bonos', 'Ingreso'), ('Inversiones', 'Ingreso'), ('Otros', 'Ingreso');
+        INSERT OR IGNORE INTO tipo_cuenta(tipo_cuenta, posicion) VALUES ('Débito', 1), ('Crédito', 2), ('Nómina', 3), ('Efectivo', 4);
+        INSERT OR IGNORE INTO tipo_movimiento(tipo_mov, posicion) VALUES ('Gasto', 1), ('Pago automático', 2), ('Pago adelantado', 3), ('Devolución', 4), ('Ingreso', 5);
+        INSERT OR IGNORE INTO categorias(categoria, tipo, posicion) VALUES ('Abarrotes', 'Gasto', 1), ('Entretenimiento', 'Gasto', 2), ('Servicios', 'Gasto', 3), ('Suscripciones', 'Gasto', 4), ('Gasolina', 'Gasto', 5), ('Bonos', 'Ingreso', 1), ('Inversiones', 'Ingreso', 2), ('Otros', 'Ingreso', 3);
       `);
       console.log("Tipos de cuentas y movimientos iniciales registrados.");
 
       // Seed inicial de cuentas de pago
       await db.execAsync(`
-        INSERT OR IGNORE INTO cuentas_metodos (nombre, limite, tipo_cuenta, fecha_corte) VALUES ('Mercado Pago', '13500', 2, 13), ('BBVA', '0', 1, 0), ('Nu', '0', 1, 0), ('Efectivo', '0', 3, 0), ('BBVA Oro', '47400', 2, 13);
+        INSERT OR IGNORE INTO cuentas_metodos (posicion, nombre, limite, tipo_cuenta, fecha_corte, fecha_pago) VALUES (1, 'Mercado Pago', '13500', 2, 13, 25), (2, 'BBVA', '0', 1, 0, 0), (3, 'Nu', '0', 1, 0, 0), (4, 'Efectivo', '0', 4, 0, 0), (5, 'BBVA Oro', '47400', 2, 13, 25);
       `);
       console.log("Métodos de pago iniciales registrados.");
 

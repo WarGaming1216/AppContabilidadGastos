@@ -37,7 +37,7 @@ export default function AgregarGastoScreen() {
       );
 
       const result = await db.getAllAsync<MetodosPago>(
-        "SELECT * FROM cuentas_metodos;",
+        "SELECT * FROM cuentas_metodos ORDER BY posicion ASC;",
       );
 
       if (result) {

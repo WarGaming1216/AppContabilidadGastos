@@ -77,7 +77,7 @@ export default function Settings() {
   const cargarTiposMov = useCallback(async () => {
     try {
       const response = await db.getAllAsync<TipoMov>(
-        "SELECT * FROM tipo_movimiento;",
+        "SELECT * FROM tipo_movimiento ORDER BY posicion ASC;",
       );
       setTiposMov(response);
     } catch (error) {
@@ -91,7 +91,7 @@ export default function Settings() {
   const cargarTiposCuentas = useCallback(async () => {
     try {
       const response = await db.getAllAsync<TipoCuenta>(
-        "SELECT * FROM tipo_cuenta;",
+        "SELECT * FROM tipo_cuenta ORDER BY posicion ASC;",
       );
       setTiposCuentas(response);
     } catch (error) {
@@ -102,11 +102,11 @@ export default function Settings() {
   const cargarCategorias = useCallback(async () => {
     try {
       const responseG = await db.getAllAsync<Categorias>(
-        "SELECT * FROM categorias WHERE tipo = 'Gasto';",
+        "SELECT * FROM categorias WHERE tipo = 'Gasto' ORDER BY posicion ASC;",
       );
       setCategoriaG(responseG);
       const responseI = await db.getAllAsync<Categorias>(
-        "SELECT * FROM categorias WHERE tipo = 'Ingreso';",
+        "SELECT * FROM categorias WHERE tipo = 'Ingreso' ORDER BY posicion ASC;",
       );
       setCategoriaI(responseI);
     } catch (error) {

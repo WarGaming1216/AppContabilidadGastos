@@ -25,6 +25,8 @@ export default function GestionarMetodos() {
   const isDark = scheme === "dark";
   const [cuenta, setCuenta] = useState("");
   const [limite, setLimite] = useState("");
+  const [fechaC, setFechaC] = useState("");
+  const [fechaP, setFechaP] = useState("");
 
   const [mensaje, setMensaje] = useState("");
   const [cuentas, setCuentas] = useState<MetodosPago[]>([]);
@@ -57,7 +59,7 @@ export default function GestionarMetodos() {
   const cargarTipos = useCallback(async () => {
     try {
       const result = await db.getAllAsync<TipoCuenta>(
-        "SELECT * FROM tipo_cuenta",
+        "SELECT * FROM tipo_cuenta ORDER BY posicion ASC",
       );
       setTiposDB(result);
     } catch (error) {
@@ -119,7 +121,7 @@ export default function GestionarMetodos() {
   const cargarCuentas = useCallback(async () => {
     try {
       const resultMetodos = await db.getAllAsync<MetodosPago>(
-        "SELECT * FROM cuentas_metodos",
+        "SELECT * FROM cuentas_metodos ORDER BY posicion ASC",
       );
       setCuentas(resultMetodos);
     } catch (error) {
@@ -151,7 +153,18 @@ export default function GestionarMetodos() {
       return;
     }
 
-    const res = await guardarCuenta(cuenta, limite, tipoIdSeleccionado);
+    if (tipoIdSeleccionado === 2 && (!fechaC.trim() || !fechaP.trim())) {
+      setMensaje("Revisa las fechas de corte y de pago.");
+      return;
+    }
+
+    const res = await guardarCuenta(
+      cuenta,
+      limite,
+      tipoIdSeleccionado,
+      fechaC,
+      fechaP,
+    );
 
     if (res && res.changes > 0) {
       setMensaje(`Cuenta ${cuenta} guardada con éxito`);
@@ -168,11 +181,13 @@ export default function GestionarMetodos() {
     cuentaNombre: string,
     limite: string,
     idTipo: number,
+    fechaC: string,
+    fechaP: string,
   ) {
     try {
       return await db.runAsync(
-        `INSERT INTO cuentas_metodos (nombre, limite, tipo_cuenta) VALUES (?, ?, ?)`,
-        [cuentaNombre, limite, idTipo],
+        `INSERT INTO cuentas_metodos (nombre, limite, tipo_cuenta, fecha_corte, fecha_pago) VALUES (?, ?, ?, ?, ?)`,
+        [cuentaNombre, limite, idTipo, fechaC, fechaP],
       );
     } catch (error) {
       console.error("Error al insertar:", error);
@@ -319,6 +334,26 @@ export default function GestionarMetodos() {
               isDark ? globalStyles.dark : globalStyles.light,
             ]}
           >
+            Tipo:
+          </Text>
+          <View>
+            <TouchableOpacity
+              style={[globalStyles.selector, globalStyles.boton_select]}
+              onPress={() => setOrigenModal("NUEVA")}
+            >
+              <Text style={globalStyles.boton_nav_text}>
+                {tipoIdSeleccionado
+                  ? obtenerNombreTipo(tipoIdSeleccionado)
+                  : "Selecciona un tipo de cuenta"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <Text
+            style={[
+              globalStyles.label,
+              isDark ? globalStyles.dark : globalStyles.light,
+            ]}
+          >
             Nombre:
           </Text>
           <MyInput
@@ -337,7 +372,7 @@ export default function GestionarMetodos() {
             }}
           />
           {tipoIdSeleccionado === 2 && (
-            <View>
+            <View style={{ display: "flex", flexDirection: "column" }}>
               <Text
                 style={[
                   globalStyles.label,
@@ -363,29 +398,59 @@ export default function GestionarMetodos() {
                     });
                   }, 150);
                 }}
-              ></MyInput>
+              />
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  flex: 1,
+                  gap: 25,
+                  marginHorizontal: 35,
+                }}
+              >
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    flex: 1,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={globalStyles.dark}>Corte (DD):</Text>
+                  <MyInput
+                    style={{ width: 40 }}
+                    placeholder="15"
+                    value={fechaC}
+                    onChangeText={(texto) => {
+                      const textoLimpio = texto.replace(/[^0-9.]/g, "");
+                      setFechaC(textoLimpio);
+                    }}
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    flex: 1,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={globalStyles.dark}>Pago (DD):</Text>
+                  <MyInput
+                    style={{ width: 40 }}
+                    placeholder="25"
+                    value={fechaP}
+                    onChangeText={(texto) => {
+                      const textoLimpio = texto.replace(/[^0-9.]/g, "");
+                      setFechaP(textoLimpio);
+                    }}
+                    keyboardType="numeric"
+                  />
+                </View>
+              </View>
             </View>
           )}
-          <Text
-            style={[
-              globalStyles.label,
-              isDark ? globalStyles.dark : globalStyles.light,
-            ]}
-          >
-            Tipo:
-          </Text>
-          <View>
-            <TouchableOpacity
-              style={[globalStyles.selector, globalStyles.boton_select]}
-              onPress={() => setOrigenModal("NUEVA")}
-            >
-              <Text style={globalStyles.boton_nav_text}>
-                {tipoIdSeleccionado
-                  ? obtenerNombreTipo(tipoIdSeleccionado)
-                  : "Selecciona un tipo de cuenta"}
-              </Text>
-            </TouchableOpacity>
-          </View>
           <TouchableOpacity style={globalStyles.boton} onPress={handleGuardar}>
             <Text style={globalStyles.boton_text}>Guardar Cuenta</Text>
           </TouchableOpacity>

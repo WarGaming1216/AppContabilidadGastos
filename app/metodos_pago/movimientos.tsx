@@ -91,7 +91,7 @@ export default function Movimientos_Page() {
     async function obtenerCuentas() {
       try {
         const result = await db.getAllAsync<MetodosPago>(
-          "SELECT * FROM cuentas_metodos",
+          "SELECT * FROM cuentas_metodos ORDER BY posicion ASC",
         );
 
         if (result) {
